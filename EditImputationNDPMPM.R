@@ -34,7 +34,7 @@ House$TEN[which(House$TEN == 3)] <- 2
 
 ###### 4: Take a sample of size 1,000 Households
 set.seed(4321)
-sample_size <- 500
+sample_size <- 1000
 samp_index <- sort(sample(1:nrow(House),sample_size,replace=F))
 House <- House[samp_index,]
 
@@ -119,13 +119,15 @@ q <- ncol(X_house)
 level_indiv = list(c(1:2),c(1:9),c(1:5),c(1:96),c(2:13))
 level_house = list(c(1:3),c(1:2),c(1:2),c(1:9),c(1:5),c(16:96),c(1))
 Y_house <- X_house; Y_indiv <- X_indiv
-a_epsilon_house <- c(0,1,1,3,3,2,0)
-b_epsilon_house <- c(1,10,15,20,15,10,1)
-a_epsilon_indiv <- c(1,1,3,3,2)
-b_epsilon_indiv <- c(5,10,15,10,20)
-epsilon_house <- rbeta(q,t(t(a_epsilon_house)),t(t(b_epsilon_house)))
-epsilon_indiv <- rbeta(p,t(t(a_epsilon_indiv)),t(t(b_epsilon_indiv)))
+#a_epsilon_house <- c(0,1,1,3,3,2,0)
+#b_epsilon_house <- c(1,10,15,20,15,10,1)
+#a_epsilon_indiv <- c(1,1,3,3,2)
+#b_epsilon_indiv <- c(5,10,15,10,20)
+#epsilon_house <- rbeta(q,t(t(a_epsilon_house)),t(t(b_epsilon_house)))
+#epsilon_indiv <- rbeta(p,t(t(a_epsilon_indiv)),t(t(b_epsilon_indiv)))
 E_house <- E_indiv <- NULL
+epsilon_indiv <- c(0.1,0.1,0.05,0.45,0.3)
+epsilon_house <- c(0.0,0.2,0.1,0.05,0.35,0.5,0.0)
 for(kq in 1:q){
   E_house <- cbind(E_house, rbinom(n,1,epsilon_house[kq]))
   for(i in 1:n){
@@ -205,10 +207,11 @@ proc_total <- proc.time()
 source("GibbsSampler.R")
 total_time <- (proc.time() - proc_total)[["elapsed"]]
 
-#epsilon_house
-#[1] 0.00000000 0.12510617 0.02023269 0.11999303 0.43596356 0.13079218 0.00000000
-#epsilon_indiv
-#[1] 0.12755374 0.01188305 0.10314240 0.22168222 0.12151648
+#epsilon_indiv:
+#c(0.1,0.1,0.05,0.45,0.3)
+#epsilon_house:
+#c(0.0,0.2,0.1,0.05,0.35,0.5,0.0)
+
 
 ###### 4: Save Results
 if(hybrid_option){
