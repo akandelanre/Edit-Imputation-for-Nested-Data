@@ -121,17 +121,6 @@ for(mc in 1:n_iter){
   remove(comb_to_check); remove(check_counter); remove(check_counter_needed)
   
   
-  ## Sample epsilon
-  a_epsilon_house_star <- a_epsilon_house + colSums(E_house)
-  #b_epsilon_house_star <- b_epsilon_house + n + sum(n_0/struc_weight) - a_epsilon_house_star
-  b_epsilon_house_star <- b_epsilon_house + n - a_epsilon_house_star
-  a_epsilon_indiv_star <- a_epsilon_indiv + colSums(E_indiv)
-  #b_epsilon_indiv_star <- b_epsilon_indiv + N + sum(n_0/struc_weight*H) - a_epsilon_indiv_star
-  b_epsilon_indiv_star <- b_epsilon_indiv + N - a_epsilon_indiv_star
-  epsilon_house <- rbeta(q,t(t(a_epsilon_house_star)),t(t(b_epsilon_house_star)))
-  epsilon_indiv <- rbeta(p,t(t(a_epsilon_indiv_star)),t(t(b_epsilon_indiv_star)))
-  
-  
   ## Sample X, the true response
   # First the households
   X_house <- Y_house
@@ -231,6 +220,17 @@ for(mc in 1:n_iter){
   E_house[E_house!=0] <- 1
   E_indiv <- data.matrix(X_indiv)- data.matrix(Y_indiv)
   E_indiv[E_indiv!=0] <- 1
+  
+  
+  ## Sample epsilon
+  a_epsilon_house_star <- a_epsilon_house + colSums(E_house)
+  #b_epsilon_house_star <- b_epsilon_house + n + sum(n_0/struc_weight) - a_epsilon_house_star
+  b_epsilon_house_star <- b_epsilon_house + n - a_epsilon_house_star
+  a_epsilon_indiv_star <- a_epsilon_indiv + colSums(E_indiv)
+  #b_epsilon_indiv_star <- b_epsilon_indiv + N + sum(n_0/struc_weight*H) - a_epsilon_indiv_star
+  b_epsilon_indiv_star <- b_epsilon_indiv + N - a_epsilon_indiv_star
+  epsilon_house <- rbeta(q,t(t(a_epsilon_house_star)),t(t(b_epsilon_house_star)))
+  epsilon_indiv <- rbeta(p,t(t(a_epsilon_indiv_star)),t(t(b_epsilon_indiv_star)))
   
   
   ## Sample G
