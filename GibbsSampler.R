@@ -225,6 +225,14 @@ for(mc in 1:n_iter){
   for(i in 1:p){
     X_indiv[,i] = factor(X_indiv[,i],levels=level_indiv[[i]]) }
   
+  
+  ## Sample E, the error indicators
+  E_house <- data.matrix(X_house)- data.matrix(Y_house)
+  E_house[E_house!=0] <- 1
+  E_indiv <- data.matrix(X_indiv)- data.matrix(Y_indiv)
+  E_indiv[E_indiv!=0] <- 1
+  
+  
   ## Sample G
   ## First create indexes for phi and lambda; data.matrix function won't mess anything up as long as columns are coded as factors
   phi_index <- data.matrix(X_indiv)+FFF_indiv #has to be within loop for MI/EI
@@ -368,8 +376,8 @@ for(mc in 1:n_iter){
   cat(paste("Number of Sampled Rejections for Missing Data is ", sum(n_0_reject), "\n", sep = ''))
   cat(paste("Total (True) Number of Sampled Augmented Households is ",
             (sum(n_0_reject)+sum(n_0/struc_weight)),"\n", sep = ''))
-  cat(paste("Epsilon_indiv:", paste(round(epsilon_indiv,3)), "\n", sep = ''))
-  cat(paste("Epsilon_house:", paste(round(epsilon_house,3)), "\n", sep = ''))
+  cat(paste("Epsilon_indiv:", round(epsilon_indiv,3), "\n", sep = ''))
+  cat(paste("Epsilon_house:", round(epsilon_house,3), "\n", sep = ''))
   elapsed_time <- (proc.time() - proc_t)[["elapsed"]]
   cat(paste("Elapsed Time = ", elapsed_time, "\n\n", sep = ' '))
   

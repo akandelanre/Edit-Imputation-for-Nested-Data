@@ -84,8 +84,8 @@ one_min_V <- 1L-V
 one_min_V <- cbind(1,t(apply(one_min_V[,-SS],1,cumprod)))
 pii <- U*one_min_U
 omega <- V*one_min_V
-a_epsilon_house <- c(0,1,1,1,1,1,0); b_epsilon_house <- c(1,1,1,1,1,1,1)
-a_epsilon_indiv <- c(1,1,1,1,1); b_epsilon_indiv <- c(1,1,1,1,1)
+a_epsilon_house <- c(0,1,1,1,1,1,0); b_epsilon_house <- rep(1,q)
+a_epsilon_indiv <- c(1,1,1,1,1); b_epsilon_indiv <- rep(1,p)
 epsilon_house <- rbeta(q,t(t(a_epsilon_house)),t(t(b_epsilon_house)))
 epsilon_indiv <- rbeta(p,t(t(a_epsilon_indiv)),t(t(b_epsilon_indiv)))
 E_house <- matrix(rbinom((n*q),1,epsilon_house),ncol=q,byrow=T)
