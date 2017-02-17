@@ -117,6 +117,7 @@ M_to_use_mc <- sort(sample(seq((burn_in +1),n_iter,by=mc_thin),MM,replace=F))
 ###### 7: Create empty matrices to save results
 dp_imput_house <- dp_imput_indiv <- NULL
 ALPHA <- BETA <- PII <- G_CLUST <- M_CLUST <- N_ZERO <- NULL
+EPSILON_INDIV <- EPSILON_HOUSE <- NULL
 #LAMBDA <- matrix(0,ncol=(ncol(lambda)*nrow(lambda)),nrow=(n_iter-burn_in))
 #OMEGA <- matrix(0,ncol=(ncol(omega)*nrow(omega)),nrow=(n_iter-burn_in))
 conv_check <- NULL

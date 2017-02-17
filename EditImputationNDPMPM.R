@@ -142,7 +142,6 @@ for(kp in 1:p){
     }
   }
 }
-
 #head(E_house)
 #head(X_house)
 #head(Y_house)
@@ -158,10 +157,10 @@ write.table(X_house, file = "Results/Data_house_truth.txt",row.names = FALSE)
 write.table(X_indiv, file = "Results/Data_indiv_truth.txt",row.names = FALSE)
 write.table(epsilon_house, file = "Results/epsilon_house_truth.txt",row.names = FALSE)
 write.table(epsilon_indiv, file = "Results/epsilon_indiv_truth.txt",row.names = FALSE)
-write.table(a_epsilon_house, file = "Results/a_epsilon_house_truth.txt",row.names = FALSE)
-write.table(a_epsilon_indiv, file = "Results/a_epsilon_indiv_truth.txt",row.names = FALSE)
-write.table(b_epsilon_house, file = "Results/b_epsilon_house_truth.txt",row.names = FALSE)
-write.table(b_epsilon_indiv, file = "Results/b_epsilon_indiv_truth.txt",row.names = FALSE)
+#write.table(a_epsilon_house, file = "Results/a_epsilon_house_truth.txt",row.names = FALSE)
+#write.table(a_epsilon_indiv, file = "Results/a_epsilon_indiv_truth.txt",row.names = FALSE)
+#write.table(b_epsilon_house, file = "Results/b_epsilon_house_truth.txt",row.names = FALSE)
+#write.table(b_epsilon_indiv, file = "Results/b_epsilon_indiv_truth.txt",row.names = FALSE)
 ############################ End of Phase One #############################
 
 
@@ -206,6 +205,10 @@ proc_total <- proc.time()
 source("GibbsSampler.R")
 total_time <- (proc.time() - proc_total)[["elapsed"]]
 
+#epsilon_house
+#[1] 0.00000000 0.12510617 0.02023269 0.11999303 0.43596356 0.13079218 0.00000000
+#epsilon_indiv
+#[1] 0.12755374 0.01188305 0.10314240 0.22168222 0.12151648
 
 ###### 4: Save Results
 if(hybrid_option){

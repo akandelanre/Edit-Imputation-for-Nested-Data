@@ -355,6 +355,8 @@ for(mc in 1:n_iter){
     #LAMBDA[(mc-burn_in),] <- c(lambda)
     #OMEGA[(mc-burn_in),] <- c(omega)
     N_ZERO <- rbind(N_ZERO,sum(n_0))
+    EPSILON_INDIV <- rbind(EPSILON_INDIV, epsilon_indiv)
+    EPSILON_HOUSE <- rbind(EPSILON_house, epsilon_house)
     if(sum(mc==M_to_use_mc)==1){
       dp_imput_indiv <- rbind(dp_imput_indiv,X_indiv)  
       dp_imput_house <- rbind(dp_imput_house,X_house)
@@ -366,6 +368,8 @@ for(mc in 1:n_iter){
   cat(paste("Number of Sampled Rejections for Missing Data is ", sum(n_0_reject), "\n", sep = ''))
   cat(paste("Total (True) Number of Sampled Augmented Households is ",
             (sum(n_0_reject)+sum(n_0/struc_weight)),"\n", sep = ''))
+  cat(paste("Epsilon_indiv:", epsilon_indiv, "\n", sep = ''))
+  cat(paste("Epsilon_house:", epsilon_house, "\n", sep = ''))
   elapsed_time <- (proc.time() - proc_t)[["elapsed"]]
   cat(paste("Elapsed Time = ", elapsed_time, "\n\n", sep = ' '))
   
