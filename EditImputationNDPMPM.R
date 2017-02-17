@@ -32,9 +32,9 @@ House$TEN[which(House$TEN == 2)] <- 1
 House$TEN[which(House$TEN == 3)] <- 2
 
 
-###### 4: Take a sample of size 1,000 Households
+###### 4: Take a sample of size 500 Households
 set.seed(4321)
-sample_size <- 1000
+sample_size <- 500
 samp_index <- sort(sample(1:nrow(House),sample_size,replace=F))
 House <- House[samp_index,]
 
