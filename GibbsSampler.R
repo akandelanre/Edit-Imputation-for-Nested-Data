@@ -368,8 +368,8 @@ for(mc in 1:n_iter){
   cat(paste("Number of Sampled Rejections for Missing Data is ", sum(n_0_reject), "\n", sep = ''))
   cat(paste("Total (True) Number of Sampled Augmented Households is ",
             (sum(n_0_reject)+sum(n_0/struc_weight)),"\n", sep = ''))
-  cat(paste("Epsilon_indiv:", epsilon_indiv, "\n", sep = ''))
-  cat(paste("Epsilon_house:", epsilon_house, "\n", sep = ''))
+  cat(paste("Epsilon_indiv:", paste(round(epsilon_indiv,3)), "\n", sep = ''))
+  cat(paste("Epsilon_house:", paste(round(epsilon_house,3)), "\n", sep = ''))
   elapsed_time <- (proc.time() - proc_t)[["elapsed"]]
   cat(paste("Elapsed Time = ", elapsed_time, "\n\n", sep = ' '))
   
