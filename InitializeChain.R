@@ -48,7 +48,7 @@ FFF_house <- matrix(rep(cumsum(c(0,d_k_house[,-q])),each=n),ncol=q)
 ###### 3: Set parameters for structural zeros
 n_batch_init <- 1000 #sample impossibles in batches before checking constraints
 n_0 <- rep(0,length(level_house[[1]]))
-n_batch_imp_init <- 20 #sample imputations in batches before checking constraints
+n_batch_imp_init <- 100 #sample imputations in batches before checking constraints
 n_0_reject <- rep(0,n)
 prop_batch <- 1.2
 
