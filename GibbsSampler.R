@@ -123,9 +123,11 @@ for(mc in 1:n_iter){
   
   ## Sample epsilon
   a_epsilon_house_star <- a_epsilon_house + colSums(E_house)
-  b_epsilon_house_star <- b_epsilon_house + n + sum(n_0/struc_weight) - a_epsilon_house_star
+  #b_epsilon_house_star <- b_epsilon_house + n + sum(n_0/struc_weight) - a_epsilon_house_star
+  b_epsilon_house_star <- b_epsilon_house + n - a_epsilon_house_star
   a_epsilon_indiv_star <- a_epsilon_indiv + colSums(E_indiv)
-  b_epsilon_indiv_star <- b_epsilon_indiv + N + sum(n_0/struc_weight*H) - a_epsilon_indiv_star
+  #b_epsilon_indiv_star <- b_epsilon_indiv + N + sum(n_0/struc_weight*H) - a_epsilon_indiv_star
+  b_epsilon_indiv_star <- b_epsilon_indiv + N - a_epsilon_indiv_star
   epsilon_house <- rbeta(q,t(t(a_epsilon_house_star)),t(t(b_epsilon_house_star)))
   epsilon_indiv <- rbeta(p,t(t(a_epsilon_indiv_star)),t(t(b_epsilon_indiv_star)))
   
