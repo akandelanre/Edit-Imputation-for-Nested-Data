@@ -223,14 +223,14 @@ for(mc in 1:n_iter){
   
   
   ## Sample epsilon
-  a_epsilon_house_star <- a_epsilon_house + colSums(E_house)
+  #a_epsilon_house_star <- a_epsilon_house + colSums(E_house)
   #b_epsilon_house_star <- b_epsilon_house + n + sum(n_0/struc_weight) - a_epsilon_house_star
-  b_epsilon_house_star <- b_epsilon_house + n - a_epsilon_house_star
-  a_epsilon_indiv_star <- a_epsilon_indiv + colSums(E_indiv)
+  #b_epsilon_house_star <- b_epsilon_house + n - a_epsilon_house_star
+  #a_epsilon_indiv_star <- a_epsilon_indiv + colSums(E_indiv)
   #b_epsilon_indiv_star <- b_epsilon_indiv + N + sum(n_0/struc_weight*H) - a_epsilon_indiv_star
-  b_epsilon_indiv_star <- b_epsilon_indiv + N - a_epsilon_indiv_star
-  epsilon_house <- rbeta(q,t(t(a_epsilon_house_star)),t(t(b_epsilon_house_star)))
-  epsilon_indiv <- rbeta(p,t(t(a_epsilon_indiv_star)),t(t(b_epsilon_indiv_star)))
+  #b_epsilon_indiv_star <- b_epsilon_indiv + N - a_epsilon_indiv_star
+  #epsilon_house <- rbeta(q,t(t(a_epsilon_house_star)),t(t(b_epsilon_house_star)))
+  #epsilon_indiv <- rbeta(p,t(t(a_epsilon_indiv_star)),t(t(b_epsilon_indiv_star)))
   
   
   ## Sample G
@@ -355,16 +355,18 @@ for(mc in 1:n_iter){
   
   ## Save posterior sample and imputations
   if(mc > burn_in){
-    #PII <- rbind(PII,c(pii))
-    ALPHA <- rbind(ALPHA,alpha)
-    G_CLUST <- rbind(G_CLUST,length(unique(G)))
-    M_CLUST <- rbind(M_CLUST,max(S_occup))
-    BETA <- rbind(BETA,beta)
-    #LAMBDA[(mc-burn_in),] <- c(lambda)
-    #OMEGA[(mc-burn_in),] <- c(omega)
-    N_ZERO <- rbind(N_ZERO,sum(n_0))
-    EPSILON_INDIV <- rbind(EPSILON_INDIV, epsilon_indiv)
-    EPSILON_HOUSE <- rbind(EPSILON_house, epsilon_house)
+    if((mc %% mc_thin)==0){
+      #PII <- rbind(PII,c(pii))
+      ALPHA <- rbind(ALPHA,alpha)
+      G_CLUST <- rbind(G_CLUST,length(unique(G)))
+      M_CLUST <- rbind(M_CLUST,max(S_occup))
+      BETA <- rbind(BETA,beta)
+      #LAMBDA[(mc-burn_in),] <- c(lambda)
+      #OMEGA[(mc-burn_in),] <- c(omega)
+      N_ZERO <- rbind(N_ZERO,sum(n_0))
+      EPSILON_INDIV <- rbind(EPSILON_INDIV, epsilon_indiv)
+      EPSILON_HOUSE <- rbind(EPSILON_HOUSE, epsilon_house)
+    }
     if(sum(mc==M_to_use_mc)==1){
       dp_imput_indiv <- rbind(dp_imput_indiv,X_indiv)  
       dp_imput_house <- rbind(dp_imput_house,X_house)

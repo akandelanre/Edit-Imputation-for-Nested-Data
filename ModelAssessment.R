@@ -33,7 +33,7 @@ dp_imput_indiv_weighted <- read.table("Results/dp_imput_indiv_weighted.txt",head
 
 
 ###### 1b: Define parameters
-mm <- 50;
+mm <- 5;
 N <- nrow(Data_indiv_truth)
 n <- nrow(Data_house_truth)
 n_i <- as.numeric(as.character(Data_house_truth[,1]))
@@ -757,14 +757,16 @@ CInt_syn_weighted <- cbind(CIntLower_dp_syn_weighted,CIntUpper_dp_syn_weighted)
 
 
 ###### 3: Combine and save!!!
-CompareProbs <- cbind(Probs,Probs_cc,dp_qbar_syn,dp_qbar_syn_weighted,dp_qbar_syn_hybrid,dp_qbar_syn_weighted_hybrid,dp_qbar_syn_nz,
-                      CInt,CInt_cc,CInt_syn,CInt_syn_weighted,CInt_syn_hybrid,CInt_syn_weighted_hybrid,CInt_syn_nz)
-colnames(CompareProbs) <- c("Orig. Data Q","CC Data Q","Rej. Sampler Q","Weighted Sampler Q","Hybrid Sampler Q",
-                            "Weighted Hybrid Sampler Q","No Zeros Q",
-                            "Orig. Data L","Orig. Data U","CC Data L","CC Data U","Rej. Sampler L","Rej. Sampler U",
-                            "Weighted Sampler L","Weighted Sampler U",
-                            "Hybrid Sampler L","Hybrid Sampler U","Weighted Hybrid Sampler L","Weighted Hybrid Sampler U",
-                            "No Zeros L","No Zeros U")
+#CompareProbs <- cbind(Probs,Probs_cc,dp_qbar_syn,dp_qbar_syn_weighted,dp_qbar_syn_hybrid,dp_qbar_syn_weighted_hybrid,dp_qbar_syn_nz,
+#                      CInt,CInt_cc,CInt_syn,CInt_syn_weighted,CInt_syn_hybrid,CInt_syn_weighted_hybrid,CInt_syn_nz)
+CompareProbs <- cbind(Probs,dp_qbar_syn,CInt,CInt_syn)
+#colnames(CompareProbs) <- c("Orig. Data Q","CC Data Q","Rej. Sampler Q","Weighted Sampler Q","Hybrid Sampler Q",
+#                            "Weighted Hybrid Sampler Q","No Zeros Q",
+#                            "Orig. Data L","Orig. Data U","CC Data L","CC Data U","Rej. Sampler L","Rej. Sampler U",
+#                            "Weighted Sampler L","Weighted Sampler U",
+#                            "Hybrid Sampler L","Hybrid Sampler U","Weighted Hybrid Sampler L","Weighted Hybrid Sampler U",
+#                            "No Zeros L","No Zeros U")
+colnames(CompareProbs) <- c("Orig. Data Q","Rej. Sampler Q","Orig. Data L","Orig. Data U","Rej. Sampler L","Rej. Sampler U")
 rownames(CompareProbs) <- c("$n_i = 2$","$n_i = 3$","$n_i = 4$","SP present","SP with white HH","SP with black HH","White couple",
                             "White couple, own","Same race couple","White-nonwhite couple","Nonwhite couple, own","Only mother present",
                             "Only one parent present","Children present","Siblings present","Grandchild present","Three generations present",

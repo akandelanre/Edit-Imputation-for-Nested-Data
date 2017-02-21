@@ -48,9 +48,9 @@ FFF_house <- matrix(rep(cumsum(c(0,d_k_house[,-q])),each=n),ncol=q)
 ###### 3: Set parameters for structural zeros
 n_batch_init <- 1000 #sample impossibles in batches before checking constraints
 n_0 <- rep(0,length(level_house[[1]]))
-n_batch_imp_init <- 100 #sample imputations in batches before checking constraints
+n_batch_imp_init <- 50 #sample imputations in batches before checking constraints
 n_0_reject <- rep(0,n)
-prop_batch <- 1.2
+prop_batch <- 1.5
 
 
 ###### 4: Weighting
@@ -84,10 +84,12 @@ one_min_V <- 1L-V
 one_min_V <- cbind(1,t(apply(one_min_V[,-SS],1,cumprod)))
 pii <- U*one_min_U
 omega <- V*one_min_V
-a_epsilon_house <- c(0,1,1,1,1,1,0); b_epsilon_house <- rep(1,q)
-a_epsilon_indiv <- c(1,1,1,1,1); b_epsilon_indiv <- rep(1,p)
-epsilon_house <- rbeta(q,t(t(a_epsilon_house)),t(t(b_epsilon_house)))
-epsilon_indiv <- rbeta(p,t(t(a_epsilon_indiv)),t(t(b_epsilon_indiv)))
+#a_epsilon_house <- c(0,1,1,1,1,1,0); b_epsilon_house <- rep(1,q)
+#a_epsilon_indiv <- c(1,1,1,1,1); b_epsilon_indiv <- rep(1,p)
+#epsilon_house <- rbeta(q,t(t(a_epsilon_house)),t(t(b_epsilon_house)))
+#epsilon_indiv <- rbeta(p,t(t(a_epsilon_indiv)),t(t(b_epsilon_indiv)))
+epsilon_indiv <- c(0.1,0.1,0.05,0.45,0.3)
+epsilon_house <- c(0.0,0.2,0.1,0.05,0.35,0.5,0.0)
 #E_house <- matrix(rbinom((n*q),1,epsilon_house),ncol=q,byrow=T)
 #E_indiv <- matrix(rbinom((N*p),1,epsilon_indiv),ncol=p,byrow=T)
 pr_G <- matrix(pii,byrow=T,ncol=FF,nrow=n)
@@ -107,12 +109,12 @@ remove(pr_M); remove(Ran_unif_M); remove(cumul_M);
 
 
 ###### 8: Set MCMC parameters
-n_iter <- 5000
+n_iter <- 10000
 burn_in <- 0.5*n_iter
 MM <- 5
 mc_thin <- 10
-M_to_use_mc <- sort(sample(seq((burn_in +1),n_iter,by=mc_thin),MM,replace=F))
-
+#M_to_use_mc <- sort(sample(seq((burn_in +1),n_iter,by=mc_thin),MM,replace=F))
+M_to_use_mc <- round(seq((burn_in +1),n_iter,length.out=MM))
 
 ###### 7: Create empty matrices to save results
 dp_imput_house <- dp_imput_indiv <- NULL

@@ -214,34 +214,19 @@ total_time <- (proc.time() - proc_total)[["elapsed"]]
 
 
 ###### 4: Save Results
-if(hybrid_option){
-  if(weight_option){
-    MCMC_Results <- list(total_time_weighted_hybrid=total_time,
-                         dp_imput_indiv_weighted_hybrid=dp_imput_indiv,
-                         dp_imput_house_weighted_hybrid=dp_imput_house,
-                         ALPHA_weighted_hybrid=ALPHA,BETA_weighted_hybrid=BETA,
-                         N_ZERO_weighted_hybrid=N_ZERO,
-                         M_CLUST_weighted_hybrid=M_CLUST,G_CLUST_weighted_hybrid=G_CLUST)
-  } else {
-    MCMC_Results <- list(total_time_hybrid=total_time,
-                         dp_imput_indiv_hybrid=dp_imput_indiv,
-                         dp_imput_house_hybrid=dp_imput_house,
-                         ALPHA_hybrid=ALPHA,BETA_hybrid=BETA,N_ZERO_hybrid=N_ZERO,
-                         M_CLUST_hybrid=M_CLUST,G_CLUST_hybrid=G_CLUST)
-  }
+if(weight_option){
+  MCMC_Results <- list(total_time_weighted=total_time,
+                       dp_imput_indiv_weighted=dp_imput_indiv,
+                       dp_imput_house_weighted=dp_imput_house,
+                       ALPHA_weighted=ALPHA,BETA_weighted=BETA,N_ZERO_weighted=N_ZERO,
+                       M_CLUST_weighted=M_CLUST,G_CLUST_weighted=G_CLUST,
+                       EPSILON_INDIV_weighted=EPSILON_INDIV,EPSILON_HOUSE_weighted=EPSILON_HOUSE)
 } else {
-  if(weight_option){
-    MCMC_Results <- list(total_time_weighted=total_time,
-                         dp_imput_indiv_weighted=dp_imput_indiv,
-                         dp_imput_house_weighted=dp_imput_house,
-                         ALPHA_weighted=ALPHA,BETA_weighted=BETA,N_ZERO_weighted=N_ZERO,
-                         M_CLUST_weighted=M_CLUST,G_CLUST_weighted=G_CLUST)
-  } else {
-    MCMC_Results <- list(total_time=total_time,dp_imput_indiv=dp_imput_indiv,
-                         dp_imput_house=dp_imput_house,
-                         ALPHA=ALPHA,BETA=BETA,N_ZERO=N_ZERO,
-                         M_CLUST=M_CLUST,G_CLUST=G_CLUST)
-  }
+  MCMC_Results <- list(total_time=total_time,dp_imput_indiv=dp_imput_indiv,
+                       dp_imput_house=dp_imput_house,
+                       ALPHA=ALPHA,BETA=BETA,N_ZERO=N_ZERO,
+                       M_CLUST=M_CLUST,G_CLUST=G_CLUST,
+                       EPSILON_INDIV=EPSILON_INDIV,EPSILON_HOUSE=EPSILON_HOUSE)
 }
 writeFun <- function(LL){names.ll <- names(LL);for(i in names.ll){
     write.table(LL[[i]],paste0("Results/",i,".txt"),row.names = FALSE)}}
