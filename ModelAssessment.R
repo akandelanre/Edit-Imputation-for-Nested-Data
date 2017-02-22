@@ -759,14 +759,15 @@ CInt_syn_weighted <- cbind(CIntLower_dp_syn_weighted,CIntUpper_dp_syn_weighted)
 ###### 3: Combine and save!!!
 #CompareProbs <- cbind(Probs,Probs_cc,dp_qbar_syn,dp_qbar_syn_weighted,dp_qbar_syn_hybrid,dp_qbar_syn_weighted_hybrid,dp_qbar_syn_nz,
 #                      CInt,CInt_cc,CInt_syn,CInt_syn_weighted,CInt_syn_hybrid,CInt_syn_weighted_hybrid,CInt_syn_nz)
-CompareProbs <- cbind(Probs,dp_qbar_syn,CInt,CInt_syn)
+CompareProbs <- cbind(Probs,dp_qbar_syn,dp_qbar_syn_weighted,CInt,CInt_syn,CInt_syn_weighted)
 #colnames(CompareProbs) <- c("Orig. Data Q","CC Data Q","Rej. Sampler Q","Weighted Sampler Q","Hybrid Sampler Q",
 #                            "Weighted Hybrid Sampler Q","No Zeros Q",
 #                            "Orig. Data L","Orig. Data U","CC Data L","CC Data U","Rej. Sampler L","Rej. Sampler U",
 #                            "Weighted Sampler L","Weighted Sampler U",
 #                            "Hybrid Sampler L","Hybrid Sampler U","Weighted Hybrid Sampler L","Weighted Hybrid Sampler U",
 #                            "No Zeros L","No Zeros U")
-colnames(CompareProbs) <- c("Orig. Data Q","Rej. Sampler Q","Orig. Data L","Orig. Data U","Rej. Sampler L","Rej. Sampler U")
+colnames(CompareProbs) <- c("Orig. Data Q","Full Model Q","Partial Model Q","Orig. Data L","Orig. Data U",
+                            "Full Model L","Full Model U","Partial Model L","Partial Model U")
 rownames(CompareProbs) <- c("$n_i = 2$","$n_i = 3$","$n_i = 4$","SP present","SP with white HH","SP with black HH","White couple",
                             "White couple, own","Same race couple","White-nonwhite couple","Nonwhite couple, own","Only mother present",
                             "Only one parent present","Children present","Siblings present","Grandchild present","Three generations present",
@@ -774,6 +775,11 @@ rownames(CompareProbs) <- c("$n_i = 2$","$n_i = 3$","$n_i = 4$","SP present","SP
 write.table(CompareProbs,"Results/CompareProbs.txt",row.names = TRUE)
 CompareProbs <- read.table("Results/CompareProbs.txt",header=TRUE)
 round(CompareProbs,3)
+
+round(CompareProbs[,c(1:3)],3)
+round(CompareProbs[,c(4:6)],3)
+round(CompareProbs[,c(7:9)],3)
+
 library(xtable)
 xtable(round(CompareProbs[,c(1,3:7)],3),digits=3)
 xtable(round(CompareProbs[,c(8,seq(10,ncol(CompareProbs),by=2))],3),digits=3)
