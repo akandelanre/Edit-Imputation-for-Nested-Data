@@ -60,7 +60,6 @@ for(mc in 1:n_iter){
         level_indiv_t <- level_indiv[[ttt]]
         X_indiv_t <- cbind(X_indiv_t,level_indiv_t[rowSums(Ran_unif_t > cumul_t) + 1L])  
       }
-      #comb_to_check <- data.matrix(X_indiv_t)
       comb_to_check <- X_indiv_t
       comb_to_check <- matrix(t(comb_to_check),byrow=T,nrow=n_batch)
       comb_to_check <- cbind(X_house_t[,(q-p+1):q],comb_to_check) #add the household head before check
@@ -122,70 +121,56 @@ for(mc in 1:n_iter){
   
   
   ## Sample X, the true response
-  # First the households
   X_house <- Y_house
-  lambda_g <- t(lambda[,G])
-  for(kkk in 2:(q-1)){
-    level_house_k <- level_house[[kkk]]
-    q_house_k <- 1/(d_k_house[kkk] - 1)
-    corr_factor_house_k <- matrix(0,ncol=d_k_house[kkk],nrow=n)
-    corr_factor_Y_house_k <- cbind(corr_factor_house_k,Y_house_nf[,kkk])
-    corr_factor_house_k <- t(apply(corr_factor_Y_house_k,1,function(x) 
-      replace(x,(1+x[(d_k_house[kkk]+1)]-min(level_house_k)),1-epsilon_house[kkk])))
-    corr_factor_house_k <- corr_factor_house_k[,-ncol(corr_factor_house_k)]
-    corr_factor_house_k[corr_factor_house_k==0] <- epsilon_house[kkk]*q_house_k
-    pr_X_house_k <- lambda_g[,d_k_house_cum[kkk]:cumsum(d_k_house)[kkk]]*corr_factor_house_k
-    pr_X_house_k <- t(apply(pr_X_house_k,1,function(x) x/sum(x)))
-    Ran_unif_X_house_k <- runif(nrow(pr_X_house_k))
-    cumul_X_house_k <- pr_X_house_k%*%upper.tri(diag(ncol(pr_X_house_k)),diag=TRUE)
-    X_house[,kkk] <- level_house_k[rowSums(Ran_unif_X_house_k>cumul_X_house_k) + 1L]   
-  }
-  # Now the individuals
   X_indiv <- Y_indiv
-  phi_m_g <- t(phi[,(rep_G+((M-1)*FF))])
-  #phi_m_g <- matrix(0,nrow=N,ncol=dim(phi)[1])
-  #for(jjj in 1:N){
-  #  phi_m_g[jjj,] <- phi[,(rep_G[jjj]+((M[jjj]-1)*FF))]
-  #}
-  for(kkkk in nonstruc_zero_variables){
-    level_indiv_k <- level_indiv[[kkkk]]
-    q_indiv_k <- 1/(d_k_indiv[kkkk] - 1)
-    corr_factor_indiv_k <- matrix(0,ncol=d_k_indiv[kkkk],nrow=N)
-    corr_factor_Y_indiv_k <- cbind(corr_factor_indiv_k,Y_indiv_nf[,kkkk])
-    corr_factor_indiv_k <- t(apply(corr_factor_Y_indiv_k,1,function(x) 
-      replace(x,(1+x[(d_k_indiv[kkkk]+1)]-min(level_indiv_k)),1-epsilon_indiv[kkkk])))
-    corr_factor_indiv_k <- corr_factor_indiv_k[,-ncol(corr_factor_indiv_k)]
-    corr_factor_indiv_k[corr_factor_indiv_k==0] <- epsilon_indiv[kkkk]*q_indiv_k
-    pr_X_indiv_k <- phi_m_g[,d_k_indiv_cum[kkkk]:cumsum(d_k_indiv)[kkkk]]*corr_factor_indiv_k
-    pr_X_indiv_k <- t(apply(pr_X_indiv_k,1,function(x) x/sum(x)))
-    Ran_unif_X_indiv_k <- runif(nrow(pr_X_indiv_k))
-    cumul_X_indiv_k <- pr_X_indiv_k%*%upper.tri(diag(ncol(pr_X_indiv_k)),diag=TRUE)
-    X_indiv[,kkkk] <- level_indiv_k[rowSums(Ran_unif_X_indiv_k>cumul_X_indiv_k) + 1L]
-  }
   n_batch_imp <- n_batch_imp_init + ceiling(n_0_reject*prop_batch) #no. of batches of imputations to sample
   n_0_reject[] <- 0
-  for(sss in 1:n){
+  for(sss in Error_index_house){
     another_index <- which(house_index==sss)
     n_another_index <- length(another_index) + 1
+    NA_house_prop <- X_house[sss,]
+    NA_house_prop[,struc_zero_variables_house] <- NA
+    NA_house_prop <- apply(NA_house_prop,2,function(x) as.numeric(as.character(x)))
+    NA_house_prop <- matrix(rep(t(NA_house_prop),n_batch_imp[sss]),byrow=TRUE,ncol=q)
     NA_indiv_prop <- X_indiv[another_index,]
-    NA_indiv_prop[,struc_zero_variables] <- NA
+    NA_indiv_prop[,struc_zero_variables_indiv] <- NA
     NA_indiv_prop <- apply(NA_indiv_prop,2,function(x) as.numeric(as.character(x)))
     NA_indiv_prop <- matrix(rep(t(NA_indiv_prop),n_batch_imp[sss]),byrow=TRUE,ncol=p)
+    G_prop <- rep(M[sss],n_batch_imp[sss])
     rep_G_prop <- rep(rep_G[another_index],n_batch_imp[sss])
     M_prop <- rep(M[another_index],n_batch_imp[sss])
+    lambda_g <- t(lambda[,G_prop])
     phi_m_g <- t(phi[,(rep_G_prop+((M_prop-1)*FF))])
     check_counter_sss <- 0;
     while(check_counter_sss < 1){
+      #First sample household data
+      X_house_prop <- NA_house_prop
+      for(kkk in struc_zero_variables_house){
+        level_house_k <- level_house[[kkk]]
+        q_house_k <- 1/(d_k_house[kkk] - 1)
+        corr_factor_house_k <- matrix(0,ncol=d_k_house[kkk],nrow=length(G_prop))
+        corr_factor_Y_house_k <- cbind(corr_factor_house_k,Y_house_nf[sss,kkk])
+        corr_factor_house_k <- t(apply(corr_factor_Y_house_k,1,function(x) 
+          replace(x,(1+x[(d_k_house[kkk]+1)]-min(level_house_k)),1-epsilon_house[which(struc_zero_variables_house==kkk)])))
+        corr_factor_house_k <- corr_factor_house_k[,-ncol(corr_factor_house_k)]
+        corr_factor_house_k[corr_factor_house_k==0] <- epsilon_house[which(struc_zero_variables_house==kkk)]*q_house_k
+        pr_X_house_k <- lambda_g[,d_k_house_cum[kkk]:cumsum(d_k_house)[kkk]]*corr_factor_house_k
+        pr_X_house_k <- t(apply(pr_X_house_k,1,function(x) x/sum(x)))
+        Ran_unif_X_house_k <- runif(nrow(pr_X_house_k))
+        cumul_X_house_k <- pr_X_house_k%*%upper.tri(diag(ncol(pr_X_house_k)),diag=TRUE)
+        X_house_prop[,kkk] <- level_house_k[rowSums(Ran_unif_X_house_k>cumul_X_house_k) + 1L]   
+      }
+      #Then sample individual data
       X_indiv_prop <- NA_indiv_prop
-      for(kkkk in struc_zero_variables){
+      for(kkkk in struc_zero_variables_indiv){
         level_indiv_k <- level_indiv[[kkkk]]
         q_indiv_k <- 1/(d_k_indiv[kkkk] - 1)
         corr_factor_indiv_k <- matrix(0,ncol=d_k_indiv[kkkk],nrow=length(M_prop))
         corr_factor_Y_indiv_k <- cbind(corr_factor_indiv_k,Y_indiv_nf[another_index,kkkk])
         corr_factor_indiv_k <- t(apply(corr_factor_Y_indiv_k,1,function(x) 
-          replace(x,(1+x[(d_k_indiv[kkkk]+1)]-min(level_indiv_k)),1-epsilon_indiv[kkkk])))
+          replace(x,(1+x[(d_k_indiv[kkkk]+1)]-min(level_indiv_k)),1-epsilon_indiv[which(struc_zero_variables_indiv==kkkk)])))
         corr_factor_indiv_k <- corr_factor_indiv_k[,-ncol(corr_factor_indiv_k)]
-        corr_factor_indiv_k[corr_factor_indiv_k==0] <- epsilon_indiv[kkkk]*q_indiv_k
+        corr_factor_indiv_k[corr_factor_indiv_k==0] <- epsilon_indiv[which(struc_zero_variables_indiv==kkkk)]*q_indiv_k
         pr_X_indiv_k <- phi_m_g[,d_k_indiv_cum[kkkk]:cumsum(d_k_indiv)[kkkk]]*corr_factor_indiv_k
         pr_X_indiv_k <- t(apply(pr_X_indiv_k,1,function(x) x/sum(x)))
         Ran_unif_X_indiv_k <- runif(nrow(pr_X_indiv_k))
@@ -194,10 +179,7 @@ for(mc in 1:n_iter){
       }
       #Check edit rules
       comb_to_check <- matrix(t(X_indiv_prop),nrow=n_batch_imp[sss],byrow=TRUE)
-      NA_house_prop <- X_house[sss,(q-p+1):q]
-      comb_to_check_HH <- matrix(rep(apply(NA_house_prop,2,function(x) as.numeric(as.character(x))),
-                                    n_batch_imp[sss]),nrow=n_batch_imp[sss],byrow = T)
-      comb_to_check <- cbind(comb_to_check_HH,comb_to_check)
+      comb_to_check <- cbind(X_house_prop[,(q-p+1):q],comb_to_check)
       check_counter <- checkSZ(comb_to_check,n_another_index)
       check_counter_sss <- check_counter_sss + sum(check_counter)
       if(length(which(check_counter==1))>0){
@@ -206,13 +188,13 @@ for(mc in 1:n_iter){
         n_0_reject[sss] <- n_0_reject[sss] + n_batch_imp[sss]
       }
     }
-    X_indiv[another_index,] <-
-      matrix(comb_to_check[which(check_counter==1)[1],-c(1:p)],byrow=TRUE,ncol=p) #remove household head
+    X_house[sss,] <- X_house_prop[which(check_counter==1)[1],]
+    X_indiv[another_index,] <- matrix(comb_to_check[which(check_counter==1)[1],-c(1:p)],byrow=TRUE,ncol=p) #remove household head
   }
-  for(i in 1:q){
-    X_house[,i] = factor(X_house[,i],levels=level_house[[i]]) }
-  for(i in 1:p){
-    X_indiv[,i] = factor(X_indiv[,i],levels=level_indiv[[i]]) }
+  for(kq in 1:q){
+    X_house[,kq] = factor(X_house[,kq],levels=level_house[[kq]]) }
+  for(kp in 1:p){
+    X_indiv[,kp] = factor(X_indiv[,kp],levels=level_indiv[[kp]]) }
   
   
   ## Sample E, the error indicators
@@ -223,14 +205,14 @@ for(mc in 1:n_iter){
   
   
   ## Sample epsilon
-  #a_epsilon_house_star <- a_epsilon_house + colSums(E_house)
+  a_epsilon_house_star <- a_epsilon_house + colSums(E_house[,struc_zero_variables_house])
   #b_epsilon_house_star <- b_epsilon_house + n + sum(n_0/struc_weight) - a_epsilon_house_star
-  #b_epsilon_house_star <- b_epsilon_house + n - a_epsilon_house_star
-  #a_epsilon_indiv_star <- a_epsilon_indiv + colSums(E_indiv)
+  b_epsilon_house_star <- b_epsilon_house + n - a_epsilon_house_star
+  a_epsilon_indiv_star <- a_epsilon_indiv + colSums(E_indiv[,struc_zero_variables_indiv])
   #b_epsilon_indiv_star <- b_epsilon_indiv + N + sum(n_0/struc_weight*H) - a_epsilon_indiv_star
-  #b_epsilon_indiv_star <- b_epsilon_indiv + N - a_epsilon_indiv_star
-  #epsilon_house <- rbeta(q,t(t(a_epsilon_house_star)),t(t(b_epsilon_house_star)))
-  #epsilon_indiv <- rbeta(p,t(t(a_epsilon_indiv_star)),t(t(b_epsilon_indiv_star)))
+  b_epsilon_indiv_star <- b_epsilon_indiv + N - a_epsilon_indiv_star
+  epsilon_house <- rbeta(length(struc_zero_variables_house),t(t(a_epsilon_house_star)),t(t(b_epsilon_house_star)))
+  epsilon_indiv <- rbeta(length(struc_zero_variables_indiv),t(t(a_epsilon_indiv_star)),t(t(b_epsilon_indiv_star)))
   
   
   ## Sample G

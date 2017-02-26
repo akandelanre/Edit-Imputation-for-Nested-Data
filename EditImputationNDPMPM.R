@@ -17,6 +17,7 @@
 
 ################### Phase One: One Time Data Preparation ##################
 rm(list = ls())
+Rcpp::sourceCpp('CppFunctions/checkSZ.cpp')
 ###### 1: Import Data
 House <- read.csv("Data/House.csv",header=T)
 Indiv <- read.csv("Data/Indiv.csv",header=T)
@@ -32,9 +33,9 @@ House$TEN[which(House$TEN == 2)] <- 1
 House$TEN[which(House$TEN == 3)] <- 2
 
 
-###### 4: Take a sample of size 500 Households
+###### 4: Take a sample of size 1000 Households
 set.seed(4321)
-sample_size <- 500
+sample_size <- 1000
 samp_index <- sort(sample(1:nrow(House),sample_size,replace=F))
 House <- House[samp_index,]
 
@@ -114,43 +115,57 @@ set.seed(4321)
 N <- nrow(X_indiv)
 n <- nrow(X_house)
 n_i <- as.numeric(as.character(X_house[,1]))
+house_index <- rep(c(1:n),n_i)
 p <- ncol(X_indiv)
 q <- ncol(X_house)
 level_indiv = list(c(1:2),c(1:9),c(1:5),c(1:96),c(2:13))
 level_house = list(c(1:3),c(1:2),c(1:2),c(1:9),c(1:5),c(16:96),c(1))
 Y_house <- X_house; Y_indiv <- X_indiv
-#a_epsilon_house <- c(0,1,1,3,3,2,0)
-#b_epsilon_house <- c(1,10,15,20,15,10,1)
-#a_epsilon_indiv <- c(1,1,3,3,2)
-#b_epsilon_indiv <- c(5,10,15,10,20)
-#epsilon_house <- rbeta(q,t(t(a_epsilon_house)),t(t(b_epsilon_house)))
-#epsilon_indiv <- rbeta(p,t(t(a_epsilon_indiv)),t(t(b_epsilon_indiv)))
-E_house <- E_indiv <- NULL
-epsilon_indiv <- c(0.1,0.1,0.05,0.45,0.3)
-epsilon_house <- c(0.0,0.2,0.1,0.05,0.35,0.5,0.0)
-for(kq in 1:q){
-  E_house <- cbind(E_house, rbinom(n,1,epsilon_house[kq]))
-  for(i in 1:n){
-    if(E_house[i,kq]==1){
-      Y_house[i,kq] <- sample((level_house[[kq]])[-(1+X_house[i,kq]-min(level_house[[kq]]))],1)
+struc_zero_variables_house <- c(1,4) + 2 ##gender is still included because I am still using 2012 data
+struc_zero_variables_indiv <- c(1,4,5) ##gender is still included because I am still using 2012 data
+epsilon_indiv <- c(0.4,0.65,0.85)
+epsilon_house <- c(0.3,0.75)
+gamma <- 0.40
+z_i <- rbinom(n,1,gamma)
+Error_index_house <- which(z_i == 1)
+E_house <- matrix(0,ncol=q,nrow=n)
+E_indiv <- matrix(0,ncol=p,nrow=N)
+for(i in Error_index_house){
+  Error_index_indiv_i <- which(is.element(house_index,i)==TRUE)
+  check_counter <- 1
+  while(check_counter == 1){
+    for(kq in struc_zero_variables_house){
+      E_house[i,kq] <- rbinom(1,1,epsilon_house[which(struc_zero_variables_house==kq)])
+      if(E_house[i,kq]==1){
+        Y_house[i,kq] <- sample((level_house[[kq]])[-(1+X_house[i,kq]-min(level_house[[kq]]))],1)
+      }
     }
+    for(kp in struc_zero_variables_indiv){
+      E_indiv[Error_index_indiv_i,kp] <- rbinom(length(Error_index_indiv_i),1,epsilon_indiv[which(struc_zero_variables_indiv==kp)])
+      for(ii in 1:length(Error_index_indiv_i)){
+        if(E_indiv[Error_index_indiv_i[ii],kp]==1){
+          Y_indiv[Error_index_indiv_i[ii],kp] <- 
+            sample((level_indiv[[kp]])[-(1+X_indiv[Error_index_indiv_i[ii],kp]-min(level_indiv[[kp]]))],1)
+        }
+      }
+    }
+    comb_to_check <- matrix(t(Y_indiv[Error_index_indiv_i,]),byrow=T,nrow=1)
+    comb_to_check <- cbind(as.matrix(Y_house[i,(q-p+1):q]),comb_to_check) #add the household head before check
+    check_counter <- checkSZ(comb_to_check,(length(Error_index_indiv_i)+1))
   }
 }
-for(kp in 1:p){
-  E_indiv <- cbind(E_indiv, rbinom(N,1,epsilon_indiv[kp]))
-  for(ii in 1:N){
-    if(E_indiv[ii,kp]==1){
-      Y_indiv[ii,kp] <- sample((level_indiv[[kp]])[-(1+X_indiv[ii,kp]-min(level_indiv[[kp]]))],1)
-    }
-  }
-}
-#head(E_house)
-#head(X_house)
-#head(Y_house)
-#head(E_indiv)
-#head(X_indiv)
-#head(Y_indiv)
+#colSums(E_house)/length(Error_index_house)
+#0.0000000 0.0000000 0.3590361 0.0000000 0.0000000 0.7734940 0.0000000
+#colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
+#0.4235474 0.0000000 0.0000000 0.6574924 0.8853211
 
+#colSums(E_house)/n
+#0.000 0.000 0.149 0.000 0.000 0.321 0.000
+#colSums(E_indiv)/N
+#0.1736677 0.0000000 0.0000000 0.2695925 0.3630094
+
+#gamma is 0.40
+#sum(z_i) is 415
 
 ###### 12: Save!!!
 write.table(Y_house, file = "Data/Y_house.txt",row.names = FALSE)
@@ -159,10 +174,6 @@ write.table(X_house, file = "Results/Data_house_truth.txt",row.names = FALSE)
 write.table(X_indiv, file = "Results/Data_indiv_truth.txt",row.names = FALSE)
 write.table(epsilon_house, file = "Results/epsilon_house_truth.txt",row.names = FALSE)
 write.table(epsilon_indiv, file = "Results/epsilon_indiv_truth.txt",row.names = FALSE)
-#write.table(a_epsilon_house, file = "Results/a_epsilon_house_truth.txt",row.names = FALSE)
-#write.table(a_epsilon_indiv, file = "Results/a_epsilon_indiv_truth.txt",row.names = FALSE)
-#write.table(b_epsilon_house, file = "Results/b_epsilon_house_truth.txt",row.names = FALSE)
-#write.table(b_epsilon_indiv, file = "Results/b_epsilon_indiv_truth.txt",row.names = FALSE)
 ############################ End of Phase One #############################
 
 
@@ -202,15 +213,23 @@ for(i in 1:ncol(Y_indiv)){
 ###### 2: Set global parameters and initialize chain
 source("InitializeChain.R")
 
+
 ###### 3: Run MCMC
 proc_total <- proc.time() 
 source("GibbsSampler.R")
 total_time <- (proc.time() - proc_total)[["elapsed"]]
 
-#epsilon_indiv:
-#c(0.1,0.1,0.05,0.45,0.3)
-#epsilon_house:
-#c(0.0,0.2,0.1,0.05,0.35,0.5,0.0)
+#colSums(E_house)/length(Error_index_house)
+#0.3590361 0.7734940
+#colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
+#0.4235474 0.6574924 0.8853211
+
+#colSums(E_house)/n
+#0.149 0.321 
+#colSums(E_indiv)/N
+#0.1736677 0.2695925 0.3630094
+
+#gamma is 0.40
 
 
 ###### 4: Save Results

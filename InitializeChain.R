@@ -23,9 +23,12 @@ p <- ncol(Y_indiv)
 q <- ncol(Y_house)
 house_index <- rep(c(1:n),n_i)
 n_i_index <- rep(n_i,n_i)
-struc_zero_variables <- c(1,4,5)
-nonstruc_zero_variables <- c(2,3)
+#struc_zero_variables <- c(1,4,5)
+#nonstruc_zero_variables <- c(2,3)
+struc_zero_variables_house <- c(1,4) + 2 ##gender is still included because I am still using 2012 data
+struc_zero_variables_indiv <- c(1,4,5) ##gender is still included because I am still using 2012 data
 H <- sort(unique(n_i))
+
 
 ###### 2: Calculate observed proportions and number of categories for each variable
 d_k_house <- d_k_indiv <- ini_marg_house <- ini_marg_indiv <- NULL
@@ -48,9 +51,9 @@ FFF_house <- matrix(rep(cumsum(c(0,d_k_house[,-q])),each=n),ncol=q)
 ###### 3: Set parameters for structural zeros
 n_batch_init <- 1000 #sample impossibles in batches before checking constraints
 n_0 <- rep(0,length(level_house[[1]]))
-n_batch_imp_init <- 50 #sample imputations in batches before checking constraints
+n_batch_imp_init <- 30 #sample imputations in batches before checking constraints
 n_0_reject <- rep(0,n)
-prop_batch <- 1.5
+prop_batch <- 1.2
 
 
 ###### 4: Weighting
@@ -62,6 +65,20 @@ if(weight_option){
 }
 struc_weight <- as.matrix(struc_weight)
 rownames(struc_weight) <- as.character(unique(sort(n_i)))
+
+
+###### 5: Check for erronous households...
+z_i <- matrix(0,ncol=1,nrow=n)
+for(hh_size in H){
+  house_index_hh <- which(n_i == hh_size)
+  comb_to_check <- Y_indiv[which(is.element(house_index,house_index_hh)==TRUE),]
+  comb_to_check <- apply(comb_to_check,2,function(x) as.numeric(as.character(x)))
+  comb_to_check <- matrix(t(comb_to_check),byrow=T,ncol=(p*hh_size))
+  comb_to_check <- cbind(Y_house[house_index_hh,(q-p+1):q],comb_to_check) #add the household head before check
+  comb_to_check <- apply(comb_to_check,2,function(x) as.numeric(as.character(x)))
+  z_i[house_index_hh] <- ifelse(checkSZ(comb_to_check,(hh_size+1))==1,0,1)
+}
+Error_index_house <- which(z_i == 1)
 
 
 ###### 5: Initialize chain
@@ -84,12 +101,10 @@ one_min_V <- 1L-V
 one_min_V <- cbind(1,t(apply(one_min_V[,-SS],1,cumprod)))
 pii <- U*one_min_U
 omega <- V*one_min_V
-#a_epsilon_house <- c(0,1,1,1,1,1,0); b_epsilon_house <- rep(1,q)
-#a_epsilon_indiv <- c(1,1,1,1,1); b_epsilon_indiv <- rep(1,p)
-#epsilon_house <- rbeta(q,t(t(a_epsilon_house)),t(t(b_epsilon_house)))
-#epsilon_indiv <- rbeta(p,t(t(a_epsilon_indiv)),t(t(b_epsilon_indiv)))
-epsilon_indiv <- c(0.1,0.1,0.05,0.45,0.3)
-epsilon_house <- c(0.0,0.2,0.1,0.05,0.35,0.5,0.0)
+a_epsilon_house <- b_epsilon_house <- rep(1,length(struc_zero_variables_house))
+a_epsilon_indiv <- b_epsilon_indiv <- rep(1,length(struc_zero_variables_indiv))
+epsilon_house <- rbeta(length(struc_zero_variables_house),t(t(a_epsilon_house)),t(t(b_epsilon_house)))
+epsilon_indiv <- rbeta(length(struc_zero_variables_indiv),t(t(a_epsilon_indiv)),t(t(b_epsilon_indiv)))
 #E_house <- matrix(rbinom((n*q),1,epsilon_house),ncol=q,byrow=T)
 #E_indiv <- matrix(rbinom((N*p),1,epsilon_indiv),ncol=p,byrow=T)
 pr_G <- matrix(pii,byrow=T,ncol=FF,nrow=n)
@@ -115,6 +130,7 @@ MM <- 5
 mc_thin <- 10
 #M_to_use_mc <- sort(sample(seq((burn_in +1),n_iter,by=mc_thin),MM,replace=F))
 M_to_use_mc <- round(seq((burn_in +1),n_iter,length.out=MM))
+
 
 ###### 7: Create empty matrices to save results
 dp_imput_house <- dp_imput_indiv <- NULL
