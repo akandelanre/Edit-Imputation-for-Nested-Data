@@ -205,12 +205,12 @@ for(mc in 1:n_iter){
   
   
   ## Sample epsilon
-  a_epsilon_house_star <- a_epsilon_house + colSums(E_house[,struc_zero_variables_house])
+  a_epsilon_house_star <- a_epsilon_house + colSums(E_house[Error_index_house,struc_zero_variables_house])
   #b_epsilon_house_star <- b_epsilon_house + n + sum(n_0/struc_weight) - a_epsilon_house_star
-  b_epsilon_house_star <- b_epsilon_house + n - a_epsilon_house_star
-  a_epsilon_indiv_star <- a_epsilon_indiv + colSums(E_indiv[,struc_zero_variables_indiv])
+  b_epsilon_house_star <- b_epsilon_house + length(Error_index_house) - a_epsilon_house_star
+  a_epsilon_indiv_star <- a_epsilon_indiv + colSums(E_indiv[Error_index_indiv,struc_zero_variables_indiv])
   #b_epsilon_indiv_star <- b_epsilon_indiv + N + sum(n_0/struc_weight*H) - a_epsilon_indiv_star
-  b_epsilon_indiv_star <- b_epsilon_indiv + N - a_epsilon_indiv_star
+  b_epsilon_indiv_star <- b_epsilon_indiv + length(Error_index_indiv) - a_epsilon_indiv_star
   epsilon_house <- rbeta(length(struc_zero_variables_house),t(t(a_epsilon_house_star)),t(t(b_epsilon_house_star)))
   epsilon_indiv <- rbeta(length(struc_zero_variables_indiv),t(t(a_epsilon_indiv_star)),t(t(b_epsilon_indiv_star)))
   

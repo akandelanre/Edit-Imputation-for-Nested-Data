@@ -79,6 +79,7 @@ for(hh_size in H){
   z_i[house_index_hh] <- ifelse(checkSZ(comb_to_check,(hh_size+1))==1,0,1)
 }
 Error_index_house <- which(z_i == 1)
+Error_index_indiv <- which(is.element(house_index,Error_index_house)==TRUE)
 
 
 ###### 5: Initialize chain
@@ -126,7 +127,7 @@ remove(pr_M); remove(Ran_unif_M); remove(cumul_M);
 ###### 8: Set MCMC parameters
 n_iter <- 10000
 burn_in <- 0.5*n_iter
-MM <- 5
+MM <- 50
 mc_thin <- 10
 #M_to_use_mc <- sort(sample(seq((burn_in +1),n_iter,by=mc_thin),MM,replace=F))
 M_to_use_mc <- round(seq((burn_in +1),n_iter,length.out=MM))

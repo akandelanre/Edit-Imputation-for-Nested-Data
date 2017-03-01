@@ -33,9 +33,9 @@ House$TEN[which(House$TEN == 2)] <- 1
 House$TEN[which(House$TEN == 3)] <- 2
 
 
-###### 4: Take a sample of size 1000 Households
+###### 4: Take a sample of size 2000 Households
 set.seed(4321)
-sample_size <- 1000
+sample_size <- 1500
 samp_index <- sort(sample(1:nrow(House),sample_size,replace=F))
 House <- House[samp_index,]
 
@@ -219,17 +219,18 @@ proc_total <- proc.time()
 source("GibbsSampler.R")
 total_time <- (proc.time() - proc_total)[["elapsed"]]
 
-#colSums(E_house)/length(Error_index_house)
-#0.3590361 0.7734940
 #colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
 #0.4235474 0.6574924 0.8853211
+#colSums(E_house)/length(Error_index_house)
+#0.3590361 0.7734940
 
-#colSums(E_house)/n
-#0.149 0.321 
 #colSums(E_indiv)/N
 #0.1736677 0.2695925 0.3630094
+#colSums(E_house)/n
+#0.149 0.321 
 
-#gamma is 0.40
+#epsilon_indiv <- c(0.4,0.65,0.85)
+#epsilon_house <- c(0.3,0.75)
 
 
 ###### 4: Save Results
