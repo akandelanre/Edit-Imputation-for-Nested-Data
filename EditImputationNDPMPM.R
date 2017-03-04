@@ -174,6 +174,8 @@ write.table(X_house, file = "Results/Data_house_truth.txt",row.names = FALSE)
 write.table(X_indiv, file = "Results/Data_indiv_truth.txt",row.names = FALSE)
 write.table(epsilon_house, file = "Results/epsilon_house_truth.txt",row.names = FALSE)
 write.table(epsilon_indiv, file = "Results/epsilon_indiv_truth.txt",row.names = FALSE)
+write.table(E_house, file = "Results/E_house_truth.txt",row.names = FALSE)
+write.table(E_indiv, file = "Results/E_indiv_truth.txt",row.names = FALSE)
 ############################ End of Phase One #############################
 
 
