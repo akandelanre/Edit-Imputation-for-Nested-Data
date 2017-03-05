@@ -142,13 +142,17 @@ for(mc in 1:n_iter){
     lambda_g <- t(lambda[,G_prop])
     phi_m_g <- t(phi[,(rep_G_prop+((M_prop-1)*FF))])
     check_counter_sss <- 0;
+    NA_house_sss <- NA_house[sss,]
+    NA_house_sss <- matrix(rep(t(NA_house_sss),n_batch_imp[sss]),byrow=TRUE,ncol=q)
+    NA_indiv_sss <- NA_indiv[another_index,]
+    NA_indiv_sss <- matrix(rep(t(NA_indiv_sss),n_batch_imp[sss]),byrow=TRUE,ncol=p)
     while(check_counter_sss < 1){
       #First sample household data
       X_house_prop <- NA_house_prop
       for(kkk in struc_zero_variables_house){
-        if(length(which(is.na(NA_house_prop[,kkk])==TRUE))>0){
-          level_house_k <- level_house[[kkk]]
-          q_house_k <- 1/(d_k_house[kkk] - 1)
+        level_house_k <- level_house[[kkk]]
+        q_house_k <- 1/(d_k_house[kkk] - 1)
+        if(length(which(is.na(NA_house_sss[,kkk])==TRUE))>0){
           corr_factor_house_k <- matrix(0,ncol=d_k_house[kkk],nrow=length(G_prop))
           corr_factor_Y_house_k <- cbind(corr_factor_house_k,Y_house_nf[sss,kkk])
           corr_factor_house_k <- t(apply(corr_factor_Y_house_k,1,function(x)
@@ -157,18 +161,30 @@ for(mc in 1:n_iter){
           corr_factor_house_k[corr_factor_house_k==0] <- epsilon_house[which(struc_zero_variables_house==kkk)]*q_house_k
           pr_X_house_k <- lambda_g[,d_k_house_cum[kkk]:cumsum(d_k_house)[kkk]]*corr_factor_house_k
           pr_X_house_k <- t(apply(pr_X_house_k,1,function(x) x/sum(x)))
-          pr_X_house_k <- pr_X_house_k[which(is.na(NA_house_prop[,kkk])==TRUE),]
+          pr_X_house_k <- pr_X_house_k[which(is.na(NA_house_sss[,kkk])==TRUE),]
           Ran_unif_X_house_k <- runif(nrow(pr_X_house_k))
           cumul_X_house_k <- pr_X_house_k%*%upper.tri(diag(ncol(pr_X_house_k)),diag=TRUE)
-          X_house_prop[is.na(NA_house_prop[,kkk]),kkk] <- level_house_k[rowSums(Ran_unif_X_house_k>cumul_X_house_k) + 1L]   
+          X_house_prop[is.na(NA_house_sss[,kkk]),kkk] <- level_house_k[rowSums(Ran_unif_X_house_k>cumul_X_house_k) + 1L]   
+        } else if(length(which(NA_house_sss[,kkk]==1))>0){
+          corr_factor_house_k <- matrix(1,ncol=d_k_house[kkk],nrow=length(G_prop))
+          corr_factor_Y_house_k <- cbind(corr_factor_house_k,Y_house_nf[sss,kkk])
+          corr_factor_house_k <- t(apply(corr_factor_Y_house_k,1,function(x) replace(x,(1+x[(d_k_house[kkk]+1)]-min(level_house_k)),0)))
+          corr_factor_house_k <- corr_factor_house_k[,-ncol(corr_factor_house_k)]
+          corr_factor_house_k[corr_factor_house_k==1] <- epsilon_house[which(struc_zero_variables_house==kkk)]*q_house_k
+          pr_X_house_k <- lambda_g[,d_k_house_cum[kkk]:cumsum(d_k_house)[kkk]]*corr_factor_house_k
+          pr_X_house_k <- t(apply(pr_X_house_k,1,function(x) x/sum(x)))
+          pr_X_house_k <- pr_X_house_k[which(NA_house_sss[,kkk]==1),]
+          Ran_unif_X_house_k <- runif(nrow(pr_X_house_k))
+          cumul_X_house_k <- pr_X_house_k%*%upper.tri(diag(ncol(pr_X_house_k)),diag=TRUE)
+          X_house_prop[which(NA_house_sss[,kkk]==1),kkk] <- level_house_k[rowSums(Ran_unif_X_house_k>cumul_X_house_k) + 1L]   
         }
       }
       #Then sample individual data
       X_indiv_prop <- NA_indiv_prop
       for(kkkk in struc_zero_variables_indiv){
-        if(length(which(is.na(NA_indiv_prop[,kkkk])==TRUE))>0){
-          level_indiv_k <- level_indiv[[kkkk]]
-          q_indiv_k <- 1/(d_k_indiv[kkkk] - 1)
+        level_indiv_k <- level_indiv[[kkkk]]
+        q_indiv_k <- 1/(d_k_indiv[kkkk] - 1)
+        if(length(which(is.na(NA_indiv_sss[,kkkk])==TRUE))>0){
           corr_factor_indiv_k <- matrix(0,ncol=d_k_indiv[kkkk],nrow=length(M_prop))
           corr_factor_Y_indiv_k <- cbind(corr_factor_indiv_k,Y_indiv_nf[another_index,kkkk])
           corr_factor_indiv_k <- t(apply(corr_factor_Y_indiv_k,1,function(x) 
@@ -177,10 +193,22 @@ for(mc in 1:n_iter){
           corr_factor_indiv_k[corr_factor_indiv_k==0] <- epsilon_indiv[which(struc_zero_variables_indiv==kkkk)]*q_indiv_k
           pr_X_indiv_k <- phi_m_g[,d_k_indiv_cum[kkkk]:cumsum(d_k_indiv)[kkkk]]*corr_factor_indiv_k
           pr_X_indiv_k <- t(apply(pr_X_indiv_k,1,function(x) x/sum(x)))
-          pr_X_indiv_k <- pr_X_indiv_k[which(is.na(NA_indiv_prop[,kkkk])==TRUE),]
+          pr_X_indiv_k <- pr_X_indiv_k[which(is.na(NA_indiv_sss[,kkkk])==TRUE),]
           Ran_unif_X_indiv_k <- runif(nrow(pr_X_indiv_k))
           cumul_X_indiv_k <- pr_X_indiv_k%*%upper.tri(diag(ncol(pr_X_indiv_k)),diag=TRUE)
-          X_indiv_prop[is.na(NA_indiv_prop[,kkkk]),kkkk] <- level_indiv_k[rowSums(Ran_unif_X_indiv_k>cumul_X_indiv_k) + 1L]
+          X_indiv_prop[is.na(NA_indiv_sss[,kkkk]),kkkk] <- level_indiv_k[rowSums(Ran_unif_X_indiv_k>cumul_X_indiv_k) + 1L]
+        } else if(length(which(NA_indiv_sss[,kkkk]==1))>0){
+          corr_factor_indiv_k <- matrix(1,ncol=d_k_indiv[kkkk],nrow=length(M_prop))
+          corr_factor_Y_indiv_k <- cbind(corr_factor_indiv_k,Y_indiv_nf[another_index,kkkk])
+          corr_factor_indiv_k <- t(apply(corr_factor_Y_indiv_k,1,function(x) replace(x,(1+x[(d_k_indiv[kkkk]+1)]-min(level_indiv_k)),0)))
+          corr_factor_indiv_k <- corr_factor_indiv_k[,-ncol(corr_factor_indiv_k)]
+          corr_factor_indiv_k[corr_factor_indiv_k==1] <- epsilon_indiv[which(struc_zero_variables_indiv==kkkk)]*q_indiv_k
+          pr_X_indiv_k <- phi_m_g[,d_k_indiv_cum[kkkk]:cumsum(d_k_indiv)[kkkk]]*corr_factor_indiv_k
+          pr_X_indiv_k <- t(apply(pr_X_indiv_k,1,function(x) x/sum(x)))
+          pr_X_indiv_k <- pr_X_indiv_k[which(NA_indiv_sss[,kkkk]==1),]
+          Ran_unif_X_indiv_k <- runif(nrow(pr_X_indiv_k))
+          cumul_X_indiv_k <- pr_X_indiv_k%*%upper.tri(diag(ncol(pr_X_indiv_k)),diag=TRUE)
+          X_indiv_prop[which(NA_indiv_sss[,kkkk]==1),kkkk] <- level_indiv_k[rowSums(Ran_unif_X_indiv_k>cumul_X_indiv_k) + 1L]
         }
       }
       #Check edit rules

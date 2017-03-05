@@ -69,8 +69,8 @@ rownames(struc_weight) <- as.character(unique(sort(n_i)))
 
 ###### 5: Check for erronous households...
 z_i <- matrix(0,ncol=1,nrow=n)
-NA_house <- matrix(0,ncol=q,nrow=n,byrow=T)
-NA_indiv <- matrix(0,ncol=p,nrow=N,byrow=T)
+#NA_house <- matrix(0,ncol=q,nrow=n,byrow=T)
+#NA_indiv <- matrix(0,ncol=p,nrow=N,byrow=T)
 for(hh_size in H){
   house_index_hh <- which(n_i == hh_size)
   comb_to_check <- Y_indiv[which(is.element(house_index,house_index_hh)==TRUE),]
@@ -79,14 +79,16 @@ for(hh_size in H){
   comb_to_check <- cbind(Y_house[house_index_hh,(q-p+1):q],comb_to_check) #add the household head before check
   comb_to_check <- apply(comb_to_check,2,function(x) as.numeric(as.character(x)))
   z_i[house_index_hh] <- ifelse(checkSZ(comb_to_check,(hh_size+1))==1,0,1)
-  NA_house[house_index_hh,struc_zero_variables_house] <- rep(z_i[house_index_hh],length(struc_zero_variables_house))
-  NA_indiv[which(is.element(house_index,house_index_hh)==TRUE),struc_zero_variables_indiv] <- 
-    rep(rep(z_i[house_index_hh],n_i[house_index_hh]),length(struc_zero_variables_indiv))
+  #NA_house[house_index_hh,struc_zero_variables_house] <- rep(z_i[house_index_hh],length(struc_zero_variables_house))
+  #NA_indiv[which(is.element(house_index,house_index_hh)==TRUE),struc_zero_variables_indiv] <- 
+  #  rep(rep(z_i[house_index_hh],n_i[house_index_hh]),length(struc_zero_variables_indiv))
 }
 z_i_index_house <- which(z_i == 1)
 z_i_index_indiv <- which(is.element(house_index,z_i_index_house)==TRUE)
-NA_house[NA_house==1] <- NA
-NA_indiv[NA_indiv==1] <- NA
+NA_house <- read.table("Results/E_house_truth.txt",header=TRUE)
+NA_indiv <- read.table("Results/E_indiv_truth.txt",header=TRUE)
+#NA_house[NA_house==1] <- NA
+#NA_indiv[NA_indiv==1] <- NA
 
 
 ###### 5: Initialize chain

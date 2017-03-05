@@ -154,6 +154,10 @@ for(i in Error_index_house){
     check_counter <- checkSZ(comb_to_check,(length(Error_index_indiv_i)+1))
   }
 }
+E_house <- data.matrix(X_house)- data.matrix(Y_house)
+E_house[E_house!=0] <- 1
+E_indiv <- data.matrix(X_indiv)- data.matrix(Y_indiv)
+E_indiv[E_indiv!=0] <- 1
 #colSums(E_house)/length(Error_index_house)
 #0.0000000 0.0000000 0.3590361 0.0000000 0.0000000 0.7734940 0.0000000
 #colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
