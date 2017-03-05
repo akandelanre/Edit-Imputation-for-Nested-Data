@@ -198,10 +198,12 @@ for(mc in 1:n_iter){
   
   
   ## Sample E, the error indicators
-  E_house <- data.matrix(X_house)- data.matrix(Y_house)
-  E_house[E_house!=0] <- 1
-  E_indiv <- data.matrix(X_indiv)- data.matrix(Y_indiv)
-  E_indiv[E_indiv!=0] <- 1
+  #E_house <- data.matrix(X_house)- data.matrix(Y_house)
+  #E_house[E_house!=0] <- 1'
+  E_house <- E_house_truth
+  #E_indiv <- data.matrix(X_indiv)- data.matrix(Y_indiv)
+  #E_indiv[E_indiv!=0] <- 1
+  E_indiv <- E_indiv_truth
   
   
   ## Sample epsilon

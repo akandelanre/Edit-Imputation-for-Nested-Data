@@ -33,7 +33,7 @@ House$TEN[which(House$TEN == 2)] <- 1
 House$TEN[which(House$TEN == 3)] <- 2
 
 
-###### 4: Take a sample of size 2000 Households
+###### 4: Take a sample of size 1500 Households
 set.seed(4321)
 sample_size <- 1500
 samp_index <- sort(sample(1:nrow(House),sample_size,replace=F))
@@ -154,6 +154,11 @@ for(i in Error_index_house){
     check_counter <- checkSZ(comb_to_check,(length(Error_index_indiv_i)+1))
   }
 }
+E_house <- data.matrix(X_house)- data.matrix(Y_house)
+E_house[E_house!=0] <- 1
+E_indiv <- data.matrix(X_indiv)- data.matrix(Y_indiv)
+E_indiv[E_indiv!=0] <- 1
+
 #colSums(E_house)/length(Error_index_house)
 #0.0000000 0.0000000 0.3590361 0.0000000 0.0000000 0.7734940 0.0000000
 #colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
@@ -172,8 +177,10 @@ write.table(Y_house, file = "Data/Y_house.txt",row.names = FALSE)
 write.table(Y_indiv, file = "Data/Y_indiv.txt",row.names = FALSE)
 write.table(X_house, file = "Results/Data_house_truth.txt",row.names = FALSE)
 write.table(X_indiv, file = "Results/Data_indiv_truth.txt",row.names = FALSE)
-write.table(epsilon_house, file = "Results/epsilon_house_truth.txt",row.names = FALSE)
-write.table(epsilon_indiv, file = "Results/epsilon_indiv_truth.txt",row.names = FALSE)
+write.table(epsilon_house, file = "Data/epsilon_house_truth.txt",row.names = FALSE)
+write.table(epsilon_indiv, file = "Data/epsilon_indiv_truth.txt",row.names = FALSE)
+write.table(E_house, file = "Data/E_house_truth.txt",row.names = FALSE)
+write.table(E_indiv, file = "Data/E_indiv_truth.txt",row.names = FALSE)
 ############################ End of Phase One #############################
 
 
@@ -198,6 +205,8 @@ source("OtherFunctions/OtherFunctions.R")
 ###### 1b: Load prepared data; make sure data is in the right format
 Y_house = read.table("Data/Y_house.txt",header=TRUE)
 Y_indiv = read.table("Data/Y_indiv.txt",header=TRUE)
+E_house_truth = read.table("Data/E_house_truth.txt",header=TRUE)
+E_indiv_truth = read.table("Data/E_indiv_truth.txt",header=TRUE)
 level_indiv = list(c(1:2),c(1:9),c(1:5),c(1:96),c(2:13))
 level_house = list(c(1:3),c(1:2),c(1:2),c(1:9),c(1:5),c(16:96),c(1))
 Y_house <- data.frame(Y_house)
