@@ -89,6 +89,8 @@ NA_house <- read.table("Results/E_house_truth.txt",header=TRUE)
 NA_indiv <- read.table("Results/E_indiv_truth.txt",header=TRUE)
 #NA_house[NA_house==1] <- NA
 #NA_indiv[NA_indiv==1] <- NA
+Data_indiv_cc <- Y_indiv[-z_i_index_indiv,]
+Data_house_cc <- Y_house[-z_i_index_house,]
 
 
 ###### 5: Initialize chain

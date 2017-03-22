@@ -171,6 +171,13 @@ E_indiv[E_indiv!=0] <- 1
 #gamma is 0.40
 #sum(z_i) is 415
 
+###### 12: Separate complete data
+Data_indiv_cc <- Y_indiv[-z_i_index_indiv,]
+Data_house_cc <- Y_house[-z_i_index_house,]
+
+
+###### 13: Save!!!
+
 ###### 12: Save!!!
 write.table(Y_house, file = "Data/Y_house.txt",row.names = FALSE)
 write.table(Y_indiv, file = "Data/Y_indiv.txt",row.names = FALSE)
@@ -257,6 +264,9 @@ if(weight_option){
 writeFun <- function(LL){names.ll <- names(LL);for(i in names.ll){
     write.table(LL[[i]],paste0("Results/",i,".txt"),row.names = FALSE)}}
 writeFun(MCMC_Results)
+
+write.table(Data_house_cc, file = "Results/Data_house_cc.txt",row.names = FALSE)
+write.table(Data_indiv_cc, file = "Results/Data_indiv_cc.txt",row.names = FALSE)
 ############################ End of Phase Two #############################
 
 ###########################################################################
