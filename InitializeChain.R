@@ -23,14 +23,30 @@ p <- ncol(Y_indiv)
 q <- ncol(Y_house)
 house_index <- rep(c(1:n),n_i)
 n_i_index <- rep(n_i,n_i)
-#struc_zero_variables <- c(1,4,5)
-#nonstruc_zero_variables <- c(2,3)
-struc_zero_variables_house <- c(1,4) + 2 ##gender is still included because I am still using 2012 data
+struc_zero_variables_house <- c(1,4) + (q-p) ##gender is still included because I am still using 2012 data
 struc_zero_variables_indiv <- c(1,4,5) ##gender is still included because I am still using 2012 data
+nonstruc_zero_variables_indiv <- c(1:ncol(Y_indiv))[-struc_zero_variables_indiv]
+nonstruc_zero_variables_house <- c(1:ncol(Y_house))[-struc_zero_variables_house]
 H <- sort(unique(n_i))
+NA_miss_indiv <- Y_indiv; NA_miss_house <- Y_house; # For missing data
 
 
-###### 2: Calculate observed proportions and number of categories for each variable
+###### 2: Fill missing values with starting values
+if(sum(is.na(NA_miss_indiv)) > 0){
+  for (ii in 1:ncol(Y_indiv)){
+    Y_indiv[is.na(Y_indiv[,ii]),ii] <- 
+      sample(level_indiv[[ii]],length(Y_indiv[is.na(Y_indiv[,ii]),ii]),replace=T,prob=summary(na.omit(Y_indiv[,ii])))
+  }
+}
+if(sum(is.na(NA_miss_house)) > 0){
+  for (jj in 2:ncol(Y_house)){
+    Y_house[is.na(Y_house[,jj]),jj] <- 
+      sample(level_house[[jj]],length(Y_house[is.na(Y_house[,jj]),jj]),replace=T,prob=summary(na.omit(Y_house[,jj])))
+  }
+}
+
+
+###### 3: Calculate observed proportions and number of categories for each variable
 d_k_house <- d_k_indiv <- ini_marg_house <- ini_marg_indiv <- NULL
 for(k in 1:q){
   d_k_house <- cbind(d_k_house,nlevels(Y_house[,k]))
@@ -48,7 +64,7 @@ FFF_indiv <- matrix(rep(cumsum(c(0,d_k_indiv[,-p])),each=N),ncol=p)
 FFF_house <- matrix(rep(cumsum(c(0,d_k_house[,-q])),each=n),ncol=q)
 
 
-###### 3: Set parameters for structural zeros
+###### 4: Set parameters for structural zeros
 n_batch_init <- 1000 #sample impossibles in batches before checking constraints
 n_0 <- rep(0,length(level_house[[1]]))
 n_batch_imp_init <- 30 #sample imputations in batches before checking constraints
@@ -56,7 +72,7 @@ n_0_reject <- rep(0,n)
 prop_batch <- 1.2
 
 
-###### 4: Weighting
+###### 5: Weighting
 weight_option <- FALSE #set to true for weighting/capping option
 if(weight_option){
   struc_weight <- c(1/2,1/2,1/3) #set weights: must be ordered & no household size must be excluded
@@ -67,10 +83,10 @@ struc_weight <- as.matrix(struc_weight)
 rownames(struc_weight) <- as.character(unique(sort(n_i)))
 
 
-###### 5: Check for erronous households...
+###### 6: Check for erronous households...
 z_i <- matrix(0,ncol=1,nrow=n)
-#NA_house <- matrix(0,ncol=q,nrow=n,byrow=T)
-#NA_indiv <- matrix(0,ncol=p,nrow=N,byrow=T)
+NA_house <- matrix(0,ncol=q,nrow=n,byrow=T)
+NA_indiv <- matrix(0,ncol=p,nrow=N,byrow=T)
 for(hh_size in H){
   house_index_hh <- which(n_i == hh_size)
   comb_to_check <- Y_indiv[which(is.element(house_index,house_index_hh)==TRUE),]
@@ -79,22 +95,22 @@ for(hh_size in H){
   comb_to_check <- cbind(Y_house[house_index_hh,(q-p+1):q],comb_to_check) #add the household head before check
   comb_to_check <- apply(comb_to_check,2,function(x) as.numeric(as.character(x)))
   z_i[house_index_hh] <- ifelse(checkSZ(comb_to_check,(hh_size+1))==1,0,1)
-  #NA_house[house_index_hh,struc_zero_variables_house] <- rep(z_i[house_index_hh],length(struc_zero_variables_house))
-  #NA_indiv[which(is.element(house_index,house_index_hh)==TRUE),struc_zero_variables_indiv] <- 
-  #  rep(rep(z_i[house_index_hh],n_i[house_index_hh]),length(struc_zero_variables_indiv))
+  NA_house[house_index_hh,struc_zero_variables_house] <- rep(z_i[house_index_hh],length(struc_zero_variables_house))
+  NA_indiv[which(is.element(house_index,house_index_hh)==TRUE),struc_zero_variables_indiv] <- 
+    rep(rep(z_i[house_index_hh],n_i[house_index_hh]),length(struc_zero_variables_indiv))
 }
 z_i_index_house <- which(z_i == 1)
 z_i_index_indiv <- which(is.element(house_index,z_i_index_house)==TRUE)
-NA_house <- read.table("Results/E_house_truth.txt",header=TRUE)
-NA_indiv <- read.table("Results/E_indiv_truth.txt",header=TRUE)
-#NA_house[NA_house==1] <- NA
-#NA_indiv[NA_indiv==1] <- NA
-Data_indiv_cc <- Y_indiv[-z_i_index_indiv,]
-Data_house_cc <- Y_house[-z_i_index_house,]
+#NA_house <- read.table("Results/E_house_truth.txt",header=TRUE)
+#NA_indiv <- read.table("Results/E_indiv_truth.txt",header=TRUE)
+NA_house[NA_house==1] <- NA
+NA_indiv[NA_indiv==1] <- NA
+NA_house[is.na(NA_miss_house)] <- NA #For missing data
+NA_indiv[is.na(NA_miss_indiv)] <- NA #For missing data
 
 
-###### 5: Initialize chain
-FF <- 30
+###### 7: Initialize chain
+FF <- 20
 SS <- 15
 alpha <- beta <- 1
 a_kdk <- 1
@@ -128,12 +144,12 @@ cumul_M <- pr_M%*%upper.tri(diag(ncol(pr_M)),diag=TRUE)
 M <- rowSums(Ran_unif_M>cumul_M) + 1L
 
 
-###### 7: Free up some memory
+###### 8: Free up some memory
 remove(pr_G); remove(Ran_unif_G); remove(cumul_G);
 remove(pr_M); remove(Ran_unif_M); remove(cumul_M);
 
 
-###### 8: Set MCMC parameters
+###### 9: Set MCMC parameters
 n_iter <- 10000
 burn_in <- 0.5*n_iter
 MM <- 50
@@ -142,7 +158,7 @@ mc_thin <- 10
 M_to_use_mc <- round(seq((burn_in +1),n_iter,length.out=MM))
 
 
-###### 7: Create empty matrices to save results
+###### 10: Create empty matrices to save results
 dp_imput_house <- dp_imput_indiv <- NULL
 ALPHA <- BETA <- PII <- G_CLUST <- M_CLUST <- N_ZERO <- NULL
 EPSILON_INDIV <- EPSILON_HOUSE <- NULL

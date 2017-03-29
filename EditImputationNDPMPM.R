@@ -16,6 +16,7 @@
 
 
 ################### Phase One: One Time Data Preparation ##################
+set.seed(1205)
 rm(list = ls())
 Rcpp::sourceCpp('CppFunctions/checkSZ.cpp')
 ###### 1: Import Data
@@ -23,8 +24,8 @@ House <- read.csv("Data/House.csv",header=T)
 Indiv <- read.csv("Data/Indiv.csv",header=T)
 
 
-###### 2: Remove Households with size < 2 and > 4
-House <- House[which(House$NP >= 2 & House$NP <= 4),]
+###### 2: Remove Households with size < 2 and > 6
+House <- House[which(House$NP >= 2 & House$NP <= 6),]
 
 
 ###### 3: Keep only Households with TEN == 1,2,or 3 and recode 1,2 as 1 and 3 as 2
@@ -33,9 +34,8 @@ House$TEN[which(House$TEN == 2)] <- 1
 House$TEN[which(House$TEN == 3)] <- 2
 
 
-###### 4: Take a sample of size 5000 Households
-set.seed(4321)
-sample_size <- 5000
+###### 4: Take a sample of size 2000 Households
+sample_size <- 2000
 samp_index <- sort(sample(1:nrow(House),sample_size,replace=F))
 House <- House[samp_index,]
 
@@ -111,7 +111,6 @@ X_house <- as.data.frame(X_house)
 
 
 ###### 11: Now create erroneous data using the measurement error model
-set.seed(4321)
 N <- nrow(X_indiv)
 n <- nrow(X_house)
 n_i <- as.numeric(as.character(X_house[,1]))
@@ -123,8 +122,8 @@ level_house = list(c(1:3),c(1:2),c(1:2),c(1:9),c(1:5),c(16:96),c(1))
 Y_house <- X_house; Y_indiv <- X_indiv
 struc_zero_variables_house <- c(1,4) + 2 ##gender is still included because I am still using 2012 data
 struc_zero_variables_indiv <- c(1,4,5) ##gender is still included because I am still using 2012 data
-epsilon_indiv <- c(0.4,0.65,0.85)
-epsilon_house <- c(0.3,0.75)
+epsilon_indiv <- c(0.70,0.50,0.90)
+epsilon_house <- c(0.35,0.80)
 gamma <- 0.40
 z_i <- rbinom(n,1,gamma)
 Error_index_house <- which(z_i == 1)
@@ -159,32 +158,31 @@ E_house[E_house!=0] <- 1
 E_indiv <- data.matrix(X_indiv)- data.matrix(Y_indiv)
 E_indiv[E_indiv!=0] <- 1
 #colSums(E_house)/length(Error_index_house)
-#0.0000000 0.0000000 0.3590361 0.0000000 0.0000000 0.7734940 0.0000000
+#0.0000000 0.0000000 0.3986711 0.0000000 0.0000000 0.9069767 0.0000000 
 #colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
-#0.4235474 0.0000000 0.0000000 0.6574924 0.8853211
+#0.6336336 0.0000000 0.0000000 0.6546547 0.9299299 
 
-#colSums(E_house)/n
-#0.000 0.000 0.149 0.000 0.000 0.321 0.000
-#colSums(E_indiv)/N
-#0.1736677 0.0000000 0.0000000 0.2695925 0.3630094
 
-#gamma is 0.40
-#sum(z_i) is 415
-
-###### 12: Separate complete data
-Data_indiv_cc <- Y_indiv[-z_i_index_indiv,]
-Data_house_cc <- Y_house[-z_i_index_house,]
+###### 12: Add missing data
+O_house <- matrix(1,ncol=q,nrow=n)
+colnames(O_house) <- colnames(Y_house)
+miss_index_house <- c("Owner","HHRace","HHHisp")
+O_house[,miss_index_house] <- rbinom((n*length(miss_index_house)),1,0.70)
+O_indiv <- matrix(1,ncol=p,nrow=N)
+colnames(O_indiv) <- colnames(Y_indiv)
+miss_index_indiv <- c("Race","Hisp")
+O_indiv[,miss_index_indiv] <- rbinom((N*length(miss_index_indiv)),1,0.70)
+Y_house[O_house==0] <- NA
+Y_indiv[O_indiv==0] <- NA
 
 
 ###### 13: Save!!!
-
-###### 12: Save!!!
 write.table(Y_house, file = "Data/Y_house.txt",row.names = FALSE)
 write.table(Y_indiv, file = "Data/Y_indiv.txt",row.names = FALSE)
 write.table(X_house, file = "Results/Data_house_truth.txt",row.names = FALSE)
 write.table(X_indiv, file = "Results/Data_indiv_truth.txt",row.names = FALSE)
-write.table(epsilon_house, file = "Results/epsilon_house_truth.txt",row.names = FALSE)
-write.table(epsilon_indiv, file = "Results/epsilon_indiv_truth.txt",row.names = FALSE)
+#write.table(epsilon_house, file = "Results/epsilon_house_truth.txt",row.names = FALSE)
+#write.table(epsilon_indiv, file = "Results/epsilon_indiv_truth.txt",row.names = FALSE)
 write.table(E_house, file = "Results/E_house_truth.txt",row.names = FALSE)
 write.table(E_indiv, file = "Results/E_indiv_truth.txt",row.names = FALSE)
 ############################ End of Phase One #############################
@@ -232,18 +230,11 @@ proc_total <- proc.time()
 source("GibbsSampler.R")
 total_time <- (proc.time() - proc_total)[["elapsed"]]
 
-#colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
-#0.4235474 0.6574924 0.8853211
+
 #colSums(E_house)/length(Error_index_house)
-#0.3590361 0.7734940
-
-#colSums(E_indiv)/N
-#0.1736677 0.2695925 0.3630094
-#colSums(E_house)/n
-#0.149 0.321 
-
-#epsilon_indiv <- c(0.4,0.65,0.85)
-#epsilon_house <- c(0.3,0.75)
+#0.0000000 0.0000000 0.3986711 0.0000000 0.0000000 0.9069767 0.0000000 
+#colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
+#0.6336336 0.0000000 0.0000000 0.6546547 0.9299299 
 
 
 ###### 4: Save Results

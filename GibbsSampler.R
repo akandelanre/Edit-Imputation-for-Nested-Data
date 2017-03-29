@@ -125,15 +125,16 @@ for(mc in 1:n_iter){
   X_indiv <- Y_indiv
   n_batch_imp <- n_batch_imp_init + ceiling(n_0_reject*prop_batch) #no. of batches of imputations to sample
   n_0_reject[] <- 0
+  #First sample erroneous data (struc zeros variables only!!!)
   for(sss in z_i_index_house){
     another_index <- which(house_index==sss)
     n_another_index <- length(another_index) + 1
     NA_house_prop <- X_house[sss,]
-    NA_house_prop[is.na(NA_house[sss,])] <- NA
+    #NA_house_prop[is.na(NA_house[sss,])] <- NA
     NA_house_prop <- apply(NA_house_prop,2,function(x) as.numeric(as.character(x)))
     NA_house_prop <- matrix(rep(t(NA_house_prop),n_batch_imp[sss]),byrow=TRUE,ncol=q)
     NA_indiv_prop <- X_indiv[another_index,]
-    NA_indiv_prop[is.na(NA_indiv[another_index,])] <- NA
+    #NA_indiv_prop[is.na(NA_indiv[another_index,])] <- NA
     NA_indiv_prop <- apply(NA_indiv_prop,2,function(x) as.numeric(as.character(x)))
     NA_indiv_prop <- matrix(rep(t(NA_indiv_prop),n_batch_imp[sss]),byrow=TRUE,ncol=p)
     G_prop <- rep(M[sss],n_batch_imp[sss])
@@ -225,10 +226,37 @@ for(mc in 1:n_iter){
     X_house[sss,] <- X_house_prop[which(check_counter==1)[1],]
     X_indiv[another_index,] <- matrix(comb_to_check[which(check_counter==1)[1],-c(1:p)],byrow=TRUE,ncol=p) #remove household head
   }
+  #Now sample missing data (non-struc zeros variables only!!!)
+  #Household data
+  if(sum(is.na(NA_house[,nonstruc_zero_variables_house])) > 0){
+    lambda_g <- t(lambda[,G])
+    for(kkk in nonstruc_zero_variables_house){
+      if(length(which(is.na(NA_house[,kkk])==TRUE))>0){
+        pr_X_miss_q <- lambda_g[which(is.na(NA_house[,kkk])==TRUE),d_k_house_cum[kkk]:cumsum(d_k_house)[kkk]]
+        Ran_unif_miss_q <- runif(nrow(pr_X_miss_q))
+        cumul_miss_q <- pr_X_miss_q%*%upper.tri(diag(ncol(pr_X_miss_q)),diag=TRUE)
+        level_house_q <- level_house[[kkk]]
+        X_house[is.na(NA_house[,kkk]),kkk] <- level_house_q[rowSums(Ran_unif_miss_q>cumul_miss_q) + 1L]    
+      }
+    }
+  }
+  #Individual data
+  if(sum(is.na(NA_indiv[,nonstruc_zero_variables_indiv])) > 0){
+    phi_m_g <- t(phi[,(rep_G+((M-1)*FF))])
+    for(kkkk in nonstruc_zero_variables_indiv){
+      if(length(which(is.na(NA_indiv[,kkkk])==TRUE))>0){
+        pr_X_miss_p <- phi_m_g[which(is.na(NA_indiv[,kkkk])==TRUE),d_k_indiv_cum[kkkk]:cumsum(d_k_indiv)[kkkk]]
+        Ran_unif_miss_p <- runif(nrow(pr_X_miss_p))
+        cumul_miss_p <- pr_X_miss_p%*%upper.tri(diag(ncol(pr_X_miss_p)),diag=TRUE)
+        level_indiv_p <- level_indiv[[kkkk]]
+        X_indiv[is.na(NA_indiv[,kkkk]),kkkk] <- level_indiv_p[rowSums(Ran_unif_miss_p>cumul_miss_p) + 1L]
+      }
+    }
+  }
   for(kq in 1:q){
-    X_house[,kq] = factor(X_house[,kq],levels=level_house[[kq]]) }
+    X_house[,kq] <- factor(X_house[,kq],levels=level_house[[kq]]) }
   for(kp in 1:p){
-    X_indiv[,kp] = factor(X_indiv[,kp],levels=level_indiv[[kp]]) }
+    X_indiv[,kp] <- factor(X_indiv[,kp],levels=level_indiv[[kp]]) }
   
   
   ## Sample E, the error indicators
@@ -240,10 +268,8 @@ for(mc in 1:n_iter){
   
   ## Sample epsilon
   a_epsilon_house_star <- a_epsilon_house + colSums(E_house[z_i_index_house,struc_zero_variables_house])
-  #b_epsilon_house_star <- b_epsilon_house + n + sum(n_0/struc_weight) - a_epsilon_house_star
   b_epsilon_house_star <- b_epsilon_house + length(z_i_index_house) - a_epsilon_house_star
   a_epsilon_indiv_star <- a_epsilon_indiv + colSums(E_indiv[z_i_index_indiv,struc_zero_variables_indiv])
-  #b_epsilon_indiv_star <- b_epsilon_indiv + N + sum(n_0/struc_weight*H) - a_epsilon_indiv_star
   b_epsilon_indiv_star <- b_epsilon_indiv + length(z_i_index_indiv) - a_epsilon_indiv_star
   epsilon_house <- rbeta(length(struc_zero_variables_house),t(t(a_epsilon_house_star)),t(t(b_epsilon_house_star)))
   epsilon_indiv <- rbeta(length(struc_zero_variables_indiv),t(t(a_epsilon_indiv_star)),t(t(b_epsilon_indiv_star)))
