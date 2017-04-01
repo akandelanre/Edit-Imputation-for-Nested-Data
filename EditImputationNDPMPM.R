@@ -16,7 +16,7 @@
 
 
 ################### Phase One: One Time Data Preparation ##################
-set.seed(1205)
+set.seed(54321)
 rm(list = ls())
 Rcpp::sourceCpp('CppFunctions/checkSZ.cpp')
 ###### 1: Import Data
@@ -24,8 +24,8 @@ House <- read.csv("Data/House.csv",header=T)
 Indiv <- read.csv("Data/Indiv.csv",header=T)
 
 
-###### 2: Remove Households with size < 2 and > 6
-House <- House[which(House$NP >= 2 & House$NP <= 6),]
+###### 2: Remove Households with size < 2 and > 4
+House <- House[which(House$NP >= 2 & House$NP <= 4),]
 
 
 ###### 3: Keep only Households with TEN == 1,2,or 3 and recode 1,2 as 1 and 3 as 2
@@ -34,8 +34,8 @@ House$TEN[which(House$TEN == 2)] <- 1
 House$TEN[which(House$TEN == 3)] <- 2
 
 
-###### 4: Take a sample of size 2000 Households
-sample_size <- 2000
+###### 4: Take a sample of size 1500 Households
+sample_size <- 1500
 samp_index <- sort(sample(1:nrow(House),sample_size,replace=F))
 House <- House[samp_index,]
 
@@ -122,8 +122,8 @@ level_house = list(c(1:3),c(1:2),c(1:2),c(1:9),c(1:5),c(16:96),c(1))
 Y_house <- X_house; Y_indiv <- X_indiv
 struc_zero_variables_house <- c(1,4) + 2 ##gender is still included because I am still using 2012 data
 struc_zero_variables_indiv <- c(1,4,5) ##gender is still included because I am still using 2012 data
-epsilon_indiv <- c(0.70,0.50,0.90)
-epsilon_house <- c(0.35,0.80)
+epsilon_indiv <- c(0.25,0.85,0.60)
+epsilon_house <- c(0.35,0.70)
 gamma <- 0.40
 z_i <- rbinom(n,1,gamma)
 Error_index_house <- which(z_i == 1)
@@ -158,9 +158,9 @@ E_house[E_house!=0] <- 1
 E_indiv <- data.matrix(X_indiv)- data.matrix(Y_indiv)
 E_indiv[E_indiv!=0] <- 1
 #colSums(E_house)/length(Error_index_house)
-#0.0000000 0.0000000 0.3986711 0.0000000 0.0000000 0.9069767 0.0000000 
+#0.0000000 0.0000000 0.3906511 0.0000000 0.0000000 0.8130217 0.0000000 
 #colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
-#0.6336336 0.0000000 0.0000000 0.6546547 0.9299299 
+#0.2888889 0.0000000 0.0000000 0.9191111 0.6648889 
 
 
 ###### 12: Add missing data
@@ -232,9 +232,9 @@ total_time <- (proc.time() - proc_total)[["elapsed"]]
 
 
 #colSums(E_house)/length(Error_index_house)
-#0.0000000 0.0000000 0.3986711 0.0000000 0.0000000 0.9069767 0.0000000 
+#0.0000000 0.0000000 0.3906511 0.0000000 0.0000000 0.8130217 0.0000000 
 #colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
-#0.6336336 0.0000000 0.0000000 0.6546547 0.9299299 
+#0.2888889 0.0000000 0.0000000 0.9191111 0.6648889 
 
 
 ###### 4: Save Results
@@ -255,9 +255,6 @@ if(weight_option){
 writeFun <- function(LL){names.ll <- names(LL);for(i in names.ll){
     write.table(LL[[i]],paste0("Results/",i,".txt"),row.names = FALSE)}}
 writeFun(MCMC_Results)
-
-write.table(Data_house_cc, file = "Results/Data_house_cc.txt",row.names = FALSE)
-write.table(Data_indiv_cc, file = "Results/Data_indiv_cc.txt",row.names = FALSE)
 ############################ End of Phase Two #############################
 
 ###########################################################################

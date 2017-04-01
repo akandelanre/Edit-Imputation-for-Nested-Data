@@ -110,7 +110,7 @@ NA_indiv[is.na(NA_miss_indiv)] <- NA #For missing data
 
 
 ###### 7: Initialize chain
-FF <- 20
+FF <- 25
 SS <- 15
 alpha <- beta <- 1
 a_kdk <- 1
