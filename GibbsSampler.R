@@ -27,15 +27,16 @@ for(mc in 1:n_iter){
   G_0 <- NULL; M_0 <- NULL
   X_indiv_struc <- NULL; X_house_struc <- NULL
   X_indiv_valid <- NULL; X_house_valid <- NULL
+  n_batch_sum <- n_batch_sum + ceiling(n_0*prop_batch)
+  n_batch <- ceiling(n_batch_sum/mc) #no. of batches of imputations to sample
+  n_0[] <- 0
   for(hh_size in H){
     ss <- which(H==hh_size)
-    n_batch <- n_batch_init + ceiling(n_0[ss]*prop_batch) #no. of batches of imputations to sample
-    n_0[ss] <- 0
     t_0 <- 0; t_1 <- 0
     n_possibles <- ceiling(length(which(n_i == hh_size))*struc_weight[as.character(hh_size),])
     while(t_1 < n_possibles){
       pr_G_t <- lambda[which(level_house[[1]]==hh_size),]*pii #1 is the location of HHsize in level_house
-      G_t <- sample(FF,n_batch,prob=pr_G_t,replace=T)
+      G_t <- sample(FF,n_batch[ss],prob=pr_G_t,replace=T)
       rep_G_t <- rep(G_t,each=hh_size)
       pr_M_post_t <- omega[rep_G_t,]
       Ran_unif_M_t <- runif(nrow(pr_M_post_t))
@@ -61,14 +62,14 @@ for(mc in 1:n_iter){
         X_indiv_t <- cbind(X_indiv_t,level_indiv_t[rowSums(Ran_unif_t > cumul_t) + 1L])  
       }
       comb_to_check <- X_indiv_t
-      comb_to_check <- matrix(t(comb_to_check),byrow=T,nrow=n_batch)
+      comb_to_check <- matrix(t(comb_to_check),byrow=T,nrow=n_batch[ss])
       comb_to_check <- cbind(X_house_t[,(q-p+1):q],comb_to_check) #add the household head before check
       check_counter <- checkSZ(comb_to_check,(hh_size+1)) 
       X_indiv_t <- matrix(t(comb_to_check[,-c(1:p)]),byrow=T,ncol=p)
       
       t_1 <- t_1 + sum(check_counter);
       if(t_1 <= n_possibles){
-        t_0 <- t_0 + (n_batch - sum(check_counter))
+        t_0 <- t_0 + (n_batch[ss] - sum(check_counter))
         X_indiv_struc <- rbind(X_indiv_struc,X_indiv_t[which(rep(check_counter,each=hh_size)==0),])
         X_house_struc <- rbind(X_house_struc,X_house_t[which(check_counter==0),])
         X_indiv_valid <- rbind(X_indiv_valid,X_indiv_t[which(rep(check_counter,each=hh_size)==1),])
@@ -123,7 +124,8 @@ for(mc in 1:n_iter){
   ## Sample X, the true response
   X_house <- Y_house
   X_indiv <- Y_indiv
-  n_batch_imp <- n_batch_imp_init + ceiling(n_0_reject*prop_batch) #no. of batches of imputations to sample
+  n_batch_imp_sum <- n_batch_imp_sum + ceiling(n_0_reject*prop_batch)
+  n_batch_imp <- ceiling(n_batch_imp_sum/mc) + 1 #no. of batches of imputations to sample
   n_0_reject[] <- 0
   #First sample erroneous data (struc zeros variables only!!!)
   for(sss in z_i_index_house){

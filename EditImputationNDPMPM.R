@@ -16,16 +16,16 @@
 
 
 ################### Phase One: One Time Data Preparation ##################
-set.seed(54321)
 rm(list = ls())
+set.seed(54321)
 Rcpp::sourceCpp('CppFunctions/checkSZ.cpp')
 ###### 1: Import Data
 House <- read.csv("Data/House.csv",header=T)
 Indiv <- read.csv("Data/Indiv.csv",header=T)
 
 
-###### 2: Remove Households with size < 2 and > 4
-House <- House[which(House$NP >= 2 & House$NP <= 4),]
+###### 2: Remove Households with size < 2 and > 6
+House <- House[which(House$NP >= 2 & House$NP <= 6),]
 
 
 ###### 3: Keep only Households with TEN == 1,2,or 3 and recode 1,2 as 1 and 3 as 2
@@ -118,12 +118,12 @@ house_index <- rep(c(1:n),n_i)
 p <- ncol(X_indiv)
 q <- ncol(X_house)
 level_indiv = list(c(1:2),c(1:9),c(1:5),c(1:96),c(2:13))
-level_house = list(c(1:3),c(1:2),c(1:2),c(1:9),c(1:5),c(16:96),c(1))
+level_house = list(c(1:5),c(1:2),c(1:2),c(1:9),c(1:5),c(16:96),c(1))
 Y_house <- X_house; Y_indiv <- X_indiv
 struc_zero_variables_house <- c(1,4) + 2 ##gender is still included because I am still using 2012 data
 struc_zero_variables_indiv <- c(1,4,5) ##gender is still included because I am still using 2012 data
-epsilon_indiv <- c(0.25,0.85,0.60)
-epsilon_house <- c(0.35,0.70)
+epsilon_indiv <- c(0.25,0.85,0.50)
+epsilon_house <- c(0.35,0.60)
 gamma <- 0.40
 z_i <- rbinom(n,1,gamma)
 Error_index_house <- which(z_i == 1)
@@ -181,8 +181,6 @@ write.table(Y_house, file = "Data/Y_house.txt",row.names = FALSE)
 write.table(Y_indiv, file = "Data/Y_indiv.txt",row.names = FALSE)
 write.table(X_house, file = "Results/Data_house_truth.txt",row.names = FALSE)
 write.table(X_indiv, file = "Results/Data_indiv_truth.txt",row.names = FALSE)
-#write.table(epsilon_house, file = "Results/epsilon_house_truth.txt",row.names = FALSE)
-#write.table(epsilon_indiv, file = "Results/epsilon_indiv_truth.txt",row.names = FALSE)
 write.table(E_house, file = "Results/E_house_truth.txt",row.names = FALSE)
 write.table(E_indiv, file = "Results/E_indiv_truth.txt",row.names = FALSE)
 ############################ End of Phase One #############################
@@ -210,7 +208,7 @@ source("OtherFunctions/OtherFunctions.R")
 Y_house = read.table("Data/Y_house.txt",header=TRUE)
 Y_indiv = read.table("Data/Y_indiv.txt",header=TRUE)
 level_indiv = list(c(1:2),c(1:9),c(1:5),c(1:96),c(2:13))
-level_house = list(c(1:3),c(1:2),c(1:2),c(1:9),c(1:5),c(16:96),c(1))
+level_house = list(c(1:5),c(1:2),c(1:2),c(1:9),c(1:5),c(16:96),c(1))
 Y_house <- data.frame(Y_house)
 Y_house_nf <- Y_house
 for(i in 1:ncol(Y_house)){

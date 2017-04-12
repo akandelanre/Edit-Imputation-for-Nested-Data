@@ -65,9 +65,9 @@ FFF_house <- matrix(rep(cumsum(c(0,d_k_house[,-q])),each=n),ncol=q)
 
 
 ###### 4: Set parameters for structural zeros
-n_batch_init <- 1000 #sample impossibles in batches before checking constraints
-n_0 <- rep(0,length(level_house[[1]]))
-n_batch_imp_init <- 30 #sample imputations in batches before checking constraints
+n_batch_sum <- rep(1000,length(H)) #sample impossibles in batches before checking constraints
+n_0 <- rep(0,length(H))
+n_batch_imp_sum <- rep(10,n)
 n_0_reject <- rep(0,n)
 prop_batch <- 1.2
 
@@ -110,8 +110,8 @@ NA_indiv[is.na(NA_miss_indiv)] <- NA #For missing data
 
 
 ###### 7: Initialize chain
-FF <- 25
-SS <- 15
+FF <- 20
+SS <- 10
 alpha <- beta <- 1
 a_kdk <- 1
 a_alpha <- b_alpha <- a_beta <- b_beta <- 0.25
