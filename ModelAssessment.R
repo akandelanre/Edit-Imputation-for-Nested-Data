@@ -19,8 +19,8 @@ House <- read.csv("Data/House.csv",header=T)
 Indiv <- read.csv("Data/Indiv.csv",header=T)
 
 
-###### 2: Remove Households with size < 2 and > 4
-House <- House[which(House$NP >= 2 & House$NP <= 4),]
+###### 2: Remove Households with size < 2 and > 6
+House <- House[which(House$NP >= 2 & House$NP <= 6),]
 
 
 ###### 3: Keep only Households with TEN == 1,2,or 3 and recode 1,2 as 1 and 3 as 2
@@ -141,8 +141,8 @@ NONHISP <- 1; OWN <- 1
 
 
 ###### 2: Define quantities/estimands of interest
-Estimands <- c("Same race household, $n_i = 2$", "Same race household, $n_i = 3$", 
-               "Same race household, $n_i = 4$","Spouse present","Black HH, own",
+Estimands <- c(apply(as.matrix(H),1,function(x) paste0("Same race household, $n_i = ",as.character(x+1),"$") ),
+               "Spouse present","Black HH, own",
                "Spouse present, HH is White","Spouse present, HH is Black",
                "White couple", "Non-White couple, own","Same race couple", 
                "White-nonwhite couple", "Only one parent",
@@ -178,18 +178,10 @@ for(kk in 1:n_Pop){
   hh_check <- rbind(hh_check,Population_Indiv[which(house_index_Pop==kk),])
   hh_check <- data.frame(Owner=Population_House[kk,"Owner"],hh_check)
   
-  if(nrow(hh_check)==2 && hh_check[1,"Race"]==hh_check[2,"Race"]){
-    Probs_Pop[1] <- Probs_Pop[1] + 1 #Same race household, n_i = 2
-  }
-  if(nrow(hh_check)==3 && hh_check[1,"Race"]==hh_check[2,"Race"]&&
-     hh_check[2,"Race"]==hh_check[3,"Race"]){
-    Probs_Pop[2] <- Probs_Pop[2] + 1 #Same race household, n_i = 3
-  }
-  if(nrow(hh_check)==4 &&
-     hh_check[1,"Race"]==hh_check[2,"Race"]&&
-     hh_check[2,"Race"]==hh_check[3,"Race"]&&
-     hh_check[3,"Race"]==hh_check[4,"Race"]){
-    Probs_Pop[3] <- Probs_Pop[3] + 1 #Same race household, n_i = 4
+  for(hh in H){
+    if(nrow(hh_check)== (hh+1) && length(unique(hh_check$Race))==1){
+      Probs_Pop[which(H==hh)] <- Probs_Pop[which(H==hh)] + 1 #Same race household
+    }
   }
   if(sum(hh_check[,"Relate"]==SPOUSE)==1){
     Probs_Pop[1 + length(H)] <- Probs_Pop[1 + length(H)] + 1 #Spouse present
@@ -350,18 +342,10 @@ for(kk in 1:n){
   hh_check <- rbind(hh_check,Data_indiv_truth[which(house_index==kk),])
   hh_check <- data.frame(Owner=Data_house_truth[kk,"Owner"],hh_check)
   
-  if(nrow(hh_check)==2 && hh_check[1,"Race"]==hh_check[2,"Race"]){
-    Probs[1] <- Probs[1] + 1 #Same race household, n_i = 2
-  }
-  if(nrow(hh_check)==3 && hh_check[1,"Race"]==hh_check[2,"Race"]&&
-     hh_check[2,"Race"]==hh_check[3,"Race"]){
-    Probs[2] <- Probs[2] + 1 #Same race household, n_i = 3
-  }
-  if(nrow(hh_check)==4 &&
-     hh_check[1,"Race"]==hh_check[2,"Race"]&&
-     hh_check[2,"Race"]==hh_check[3,"Race"]&&
-     hh_check[3,"Race"]==hh_check[4,"Race"]){
-    Probs[3] <- Probs[3] + 1 #Same race household, n_i = 4
+  for(hh in H){
+    if(nrow(hh_check)== (hh+1) && length(unique(hh_check$Race))==1){
+      Probs[which(H==hh)] <- Probs[which(H==hh)] + 1 #Same race household
+    }
   }
   if(sum(hh_check[,"Relate"]==SPOUSE)==1){
     Probs[1 + length(H)] <- Probs[1 + length(H)] + 1 #Spouse present
@@ -528,18 +512,10 @@ for(k in 1:mm){
     hh_check <- rbind(hh_check,k_imp_indiv[which(new_house_index==kk),])
     hh_check <- data.frame(Owner=k_imp_house[kk,"Owner"],hh_check)
     
-    if(nrow(hh_check)==2 && hh_check[1,"Race"]==hh_check[2,"Race"]){
-      Probs_syn[1,k] <- Probs_syn[1,k] + 1 #Same race household, n_i = 2
-    }
-    if(nrow(hh_check)==3 && hh_check[1,"Race"]==hh_check[2,"Race"]&&
-       hh_check[2,"Race"]==hh_check[3,"Race"]){
-      Probs_syn[2,k] <- Probs_syn[2,k] + 1 #Same race household, n_i = 3
-    }
-    if(nrow(hh_check)==4 &&
-       hh_check[1,"Race"]==hh_check[2,"Race"]&&
-       hh_check[2,"Race"]==hh_check[3,"Race"]&&
-       hh_check[3,"Race"]==hh_check[4,"Race"]){
-      Probs_syn[3,k] <- Probs_syn[3,k] + 1 #Same race household, n_i = 4
+    for(hh in H){
+      if(nrow(hh_check)== (hh+1) && length(unique(hh_check$Race))==1){
+        Probs_syn[which(H==hh),k] <- Probs_syn[which(H==hh),k] + 1 #Same race household
+      }
     }
     if(sum(hh_check[,"Relate"]==SPOUSE)==1){
       Probs_syn[1 + length(H),k] <- Probs_syn[1 + length(H),k] + 1 #Spouse present
@@ -717,18 +693,10 @@ for(k in 1:mm){
     hh_check <- rbind(hh_check,k_imp_indiv[which(new_house_index==kk),])
     hh_check <- data.frame(Owner=k_imp_house[kk,"Owner"],hh_check)
     
-    if(nrow(hh_check)==2 && hh_check[1,"Race"]==hh_check[2,"Race"]){
-      Probs_syn_weighted[1,k] <- Probs_syn_weighted[1,k] + 1 #Same race household, n_i = 2
-    }
-    if(nrow(hh_check)==3 && hh_check[1,"Race"]==hh_check[2,"Race"]&&
-       hh_check[2,"Race"]==hh_check[3,"Race"]){
-      Probs_syn_weighted[2,k] <- Probs_syn_weighted[2,k] + 1 #Same race household, n_i = 3
-    }
-    if(nrow(hh_check)==4 &&
-       hh_check[1,"Race"]==hh_check[2,"Race"]&&
-       hh_check[2,"Race"]==hh_check[3,"Race"]&&
-       hh_check[3,"Race"]==hh_check[4,"Race"]){
-      Probs_syn_weighted[3,k] <- Probs_syn_weighted[3,k] + 1 #Same race household, n_i = 4
+    for(hh in H){
+      if(nrow(hh_check)== (hh+1) && length(unique(hh_check$Race))==1){
+        Probs_syn_weighted[which(H==hh),k] <- Probs_syn_weighted[which(H==hh),k] + 1 #Same race household
+      }
     }
     if(sum(hh_check[,"Relate"]==SPOUSE)==1){
       Probs_syn_weighted[1 + length(H),k] <- Probs_syn_weighted[1 + length(H),k] + 1 #Spouse present
