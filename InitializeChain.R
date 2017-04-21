@@ -111,7 +111,7 @@ NA_indiv[is.na(NA_miss_indiv)] <- NA #For missing data
 
 ###### 7: Initialize chain
 FF <- 20
-SS <- 10
+SS <- 15
 alpha <- beta <- 1
 a_kdk <- 1
 a_alpha <- b_alpha <- a_beta <- b_beta <- 0.25
@@ -129,8 +129,10 @@ one_min_V <- 1L-V
 one_min_V <- cbind(1,t(apply(one_min_V[,-SS],1,cumprod)))
 pii <- U*one_min_U
 omega <- V*one_min_V
-a_epsilon_house <- b_epsilon_house <- rep(1,length(struc_zero_variables_house))
-a_epsilon_indiv <- b_epsilon_indiv <- rep(1,length(struc_zero_variables_indiv))
+a_epsilon_house <- rep(1,length(struc_zero_variables_house))
+b_epsilon_house <- rep(1,length(struc_zero_variables_house))
+a_epsilon_indiv <- rep(1,length(struc_zero_variables_indiv))
+b_epsilon_indiv <- rep(1,length(struc_zero_variables_indiv))
 epsilon_house <- rbeta(length(struc_zero_variables_house),t(t(a_epsilon_house)),t(t(b_epsilon_house)))
 epsilon_indiv <- rbeta(length(struc_zero_variables_indiv),t(t(a_epsilon_indiv)),t(t(b_epsilon_indiv)))
 pr_G <- matrix(pii,byrow=T,ncol=FF,nrow=n)

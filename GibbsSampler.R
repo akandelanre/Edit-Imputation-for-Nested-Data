@@ -270,9 +270,9 @@ for(mc in 1:n_iter){
   
   ## Sample epsilon
   a_epsilon_house_star <- a_epsilon_house + colSums(E_house[z_i_index_house,struc_zero_variables_house])
-  b_epsilon_house_star <- b_epsilon_house + length(z_i_index_house) - a_epsilon_house_star
+  b_epsilon_house_star <- b_epsilon_house + length(z_i_index_house) - colSums(E_house[z_i_index_house,struc_zero_variables_house])
   a_epsilon_indiv_star <- a_epsilon_indiv + colSums(E_indiv[z_i_index_indiv,struc_zero_variables_indiv])
-  b_epsilon_indiv_star <- b_epsilon_indiv + length(z_i_index_indiv) - a_epsilon_indiv_star
+  b_epsilon_indiv_star <- b_epsilon_indiv + length(z_i_index_indiv) - colSums(E_indiv[z_i_index_indiv,struc_zero_variables_indiv])
   epsilon_house <- rbeta(length(struc_zero_variables_house),t(t(a_epsilon_house_star)),t(t(b_epsilon_house_star)))
   epsilon_indiv <- rbeta(length(struc_zero_variables_indiv),t(t(a_epsilon_indiv_star)),t(t(b_epsilon_indiv_star)))
   
