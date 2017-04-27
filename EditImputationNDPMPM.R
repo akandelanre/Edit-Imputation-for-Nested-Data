@@ -124,7 +124,7 @@ struc_zero_variables_house <- c(1,4) + 2 ##gender is still included because I am
 struc_zero_variables_indiv <- c(1,4,5) ##gender is still included because I am still using 2012 data
 epsilon_indiv <- c(0.25,0.85,0.50)
 epsilon_house <- c(0.35,0.60)
-gamma <- 0.40
+gamma <- 0.10
 z_i <- rbinom(n,1,gamma)
 Error_index_house <- which(z_i == 1)
 E_house <- matrix(0,ncol=q,nrow=n)
