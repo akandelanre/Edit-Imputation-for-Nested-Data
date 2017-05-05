@@ -113,7 +113,7 @@ SetWeights <- function(weight_option,H,struc_weight){
   struc_weight <- as.matrix(struc_weight)
   rownames(struc_weight) <- as.character(H)
   
-  return(list(struc_weight=struc_weight))
+  return(list(struc_weight=struc_weight,weight_option=weight_option))
 }
 
 
