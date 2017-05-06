@@ -10,7 +10,7 @@
 
 ###### 1: Set global parameters for data, set data to the right format and fill missing values with starting values
 GlobalPara <- SetGlobalPara(Data_house,Data_indiv,HHSize_Index)
-GlobalPara$level_house <- list(c(min(Data_house[,1]):max(Data_house[,1])),c(1:2),c(1:2),c(1:9),c(1:5),c(16:96),c(1))
+GlobalPara$level_house <- list(c(min(Data_house$HHSize):max(Data_house$HHSize)),c(1:2),c(1:2),c(1:9),c(1:5),c(16:96),c(1))
 GlobalPara$level_indiv <- list(c(1:2),c(1:9),c(1:5),c(1:96),c(2:13))
 AllData <- FormatData(Data_house,Data_indiv,GlobalPara,HHSize_Index)
 remove(Data_house)
