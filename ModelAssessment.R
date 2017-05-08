@@ -95,16 +95,16 @@ TrueSampleResults$OtherCINT <- CalculateCI(TrueSampleResults$OtherProb,TrueSampl
 
 
 ###### 6: Calculate estimands of interest for model
+###### 6a: Regular model
 ModelResults <- GetOtherProbsMI(Model$House,Model$Indiv,GlobalPara,GlobalPara$samp_size)
-
-
-###### 7:  Calculate estimands of interest for model (weighted sampler)
+###### 6b: Weighted model
 if(GlobalPara$weight_option){
   ModelResults_Weighted <- GetOtherProbsMI(Model_Weighted$House,Model_Weighted$Indiv,GlobalPara,GlobalPara$samp_size)
 }
 
 
-###### 8: Combine and save!!!
+###### 7: Combine results, make plots and save!
+###### 7a: Regular model
 png("Results/AllProbabilities_ModelResults.png",pointsize=11,width = 13, height = 7,bg="white",units="in",res=150)
 par(mfrow=c(1,3),oma=c(2,0,0,0))
 plot(TrueSampleResults$MarginalProb,ModelResults$MarginalProb,pch = 2,col="red", las=2, main ="Marginal",
@@ -117,9 +117,23 @@ plot(TrueSampleResults$TrivariateProb,ModelResults$TrivariateProb,pch = 2,col="d
      xlab = "Sample Estimate", ylab = "Average From 50 Imputed Datasets",xlim = c(0,1.0),ylim = c(0,1.0))
 abline(a=0, b=1,lty = 1, lwd = 1);
 dev.off()
+###### 7b: Weighted model
+if(GlobalPara$weight_option){
+  png("Results/AllProbabilities_ModelResults_Weighted.png",pointsize=11,width = 13, height = 7,bg="white",units="in",res=150)
+  par(mfrow=c(1,3),oma=c(2,0,0,0))
+  plot(TrueSampleResults$MarginalProb,ModelResults_Weighted$MarginalProb,pch = 2,col="red", las=2, main ="Marginal",
+       xlab = "Sample Estimate", ylab = "Average From 50 Imputed Datasets",xlim = c(0,1.0),ylim = c(0,1.0))
+  abline(a=0, b=1,lty = 1, lwd = 1);
+  plot(TrueSampleResults$BivariateProb,ModelResults_Weighted$BivariateProb,pch = 2,col="darkblue", las=2, main ="Bivariate",
+       xlab = "Sample Estimate", ylab = "Average From 50 Imputed Datasets",xlim = c(0,1.0),ylim = c(0,1.0))
+  abline(a=0, b=1,lty = 1, lwd = 1);
+  plot(TrueSampleResults$TrivariateProb,ModelResults_Weighted$TrivariateProb,pch = 2,col="darkgreen", las=2, main ="Trivariate",
+       xlab = "Sample Estimate", ylab = "Average From 50 Imputed Datasets",xlim = c(0,1.0),ylim = c(0,1.0))
+  abline(a=0, b=1,lty = 1, lwd = 1);
+  dev.off()
+}
 
-
-if(weight_option){
+if(GlobalPara$weight_option){
   CompareProbs <- cbind(PopulationResults$OtherProb,
                         TrueSampleResults$OtherProb,ModelResults$OtherProb, ModelResults_Weighted$OtherProb,
                         TrueSampleResults$OtherCINT,ModelResults$OtherCINT, ModelResults_Weighted$OtherCINT,
@@ -137,7 +151,7 @@ if(weight_option){
   colnames(CompareProbs) <- c("Pop. Truth","Orig. Data Q","Model Q","Orig. Data L","Orig. Data U","Model L","Model U",
                               "Model M.Frac","Model RE")
 }
-rownames(CompareProbs) <- Estimands
+rownames(CompareProbs) <- GlobalPara$Estimands
 
 write.table(CompareProbs,"Results/CompareProbs.txt",row.names = TRUE)
 CompareProbs <- read.table("Results/CompareProbs.txt",header=TRUE)
@@ -147,7 +161,7 @@ round(CompareProbs,3)
 #xtable(round(CompareProbs[,c(1:3)],3),digits=3)
 #xtable(round(CompareProbs[,c(4:7)],3),digits=3)
 
-########################## End of Step 1 ########################## 
+################################## END ####################################
 
 ###########################################################################
 ###########################################################################

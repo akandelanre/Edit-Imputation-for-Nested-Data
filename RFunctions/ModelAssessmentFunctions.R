@@ -301,7 +301,7 @@ CalculateCI <- function(Probs,V,imp_ind){
     CIntUpper <- Probs - (qnorm(0.025)*sqrt(V))
     CInt <- cbind(CIntLower,CIntUpper)
     
-    return(list(CINT=CInt))
+    return(CINT=CInt)
   } else {
     mm <- ncol(Probs)
     qbar <- rowMeans(Probs)
