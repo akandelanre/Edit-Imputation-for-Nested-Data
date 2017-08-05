@@ -124,9 +124,9 @@ level_house <- lapply(level_house, function(x) c(min(X_house[,x]):max(X_house[,x
 Y_house <- X_house; Y_indiv <- X_indiv
 struc_zero_variables_house <- which(is.element(colnames(X_house),c("HHGender","HHAge"))) ##gender is still included because I am still using 2012 data
 struc_zero_variables_indiv <- which(is.element(colnames(X_indiv),c("Gender","Age","Relate"))) ##gender is still included because I am still using 2012 data
-epsilon_indiv <- c(0.25,0.85,0.50)
-epsilon_house <- c(0.35,0.60)
-gamma <- 0.40
+epsilon_indiv <- c(0.90,0.85,0.90)
+epsilon_house <- c(0.95,0.80)
+gamma <- 0.12
 z_i <- rbinom(n,1,gamma)
 Error_index_house <- which(z_i == 1)
 E_house <- matrix(0,ncol=q,nrow=n)
@@ -159,21 +159,25 @@ E_house <- data.matrix(X_house)- data.matrix(Y_house)
 E_house[E_house!=0] <- 1
 E_indiv <- data.matrix(X_indiv)- data.matrix(Y_indiv)
 E_indiv[E_indiv!=0] <- 1
-#colSums(E_house)/length(Error_index_house)
-#0.0000000 0.0000000 0.3826861 0.0000000 0.0000000 0.7265372 0.0000000 
-#colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
-#0.2830898 0.0000000 0.0000000 0.8960334 0.5991649 
+
+colSums(E_house)/length(Error_index_house)
+#0.0000000 0.0000000 0.5598923 0.0000000 0.0000000 0.6500673 0.0000000 
+colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
+#0.5863214 0.0000000 0.0000000 0.7171315 0.6786189 
+
+colSums(E_house)/nrow(E_house)
+colSums(E_indiv)/nrow(E_indiv)
 
 
 ###### 12: Add missing data
 O_house <- matrix(1,ncol=q,nrow=n)
 colnames(O_house) <- colnames(Y_house)
 nonstruc_zero_variables_house <- c(1:ncol(Y_house))[-c(struc_zero_variables_house,which(colnames(X_house)=="HHSize"))]
-O_house[,nonstruc_zero_variables_house] <- rbinom((n*length(nonstruc_zero_variables_house)),1,0.70)
+O_house[,nonstruc_zero_variables_house] <- rbinom((n*length(nonstruc_zero_variables_house)),1,0.85)
 O_indiv <- matrix(1,ncol=p,nrow=N)
 colnames(O_indiv) <- colnames(Y_indiv)
 nonstruc_zero_variables_indiv <- c(1:ncol(Y_indiv))[-struc_zero_variables_indiv]
-O_indiv[,nonstruc_zero_variables_indiv] <- rbinom((N*length(nonstruc_zero_variables_indiv)),1,0.70)
+O_indiv[,nonstruc_zero_variables_indiv] <- rbinom((N*length(nonstruc_zero_variables_indiv)),1,0.85)
 Y_house[O_house==0] <- NA; Y_house$HHRelate <- 1;
 Y_indiv[O_indiv==0] <- NA
 
@@ -234,9 +238,9 @@ total_time
 
 
 #colSums(E_house)/length(Error_index_house)
-#0.0000000 0.0000000 0.3826861 0.0000000 0.0000000 0.7265372 0.0000000 
+#0.0000000 0.0000000 0.5598923 0.0000000 0.0000000 0.6500673 0.0000000 
 #colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
-#0.2830898 0.0000000 0.0000000 0.8960334 0.5991649 
+#0.5863214 0.0000000 0.0000000 0.7171315 0.6786189 
 
 
 ###### 5: Save Results
