@@ -17,7 +17,7 @@
 
 ################### Phase One: One Time Data Preparation ##################
 rm(list = ls())
-set.seed(54321)
+set.seed(1234)
 Rcpp::sourceCpp('CppFunctions/checkSZ.cpp')
 ###### 1: Import Data
 House <- read.csv("Data/House.csv",header=T)
