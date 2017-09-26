@@ -22,7 +22,11 @@ StrucZerosPara <- SetStrucZerosPara(AllData$Y_house,AllData$Y_indiv,struc_zero_h
 
 
 ###### 3: Weighting; set weight_option to true for weighting/capping option
+<<<<<<< HEAD
 Weights <- SetWeights(weight_option=FALSE,GlobalPara$H,rep(1/2,length(GlobalPara$H)))
+=======
+Weights <- SetWeights(weight_option=TRUE,GlobalPara$H,c(1/2,1/2,1/2,1/3,1/3))
+>>>>>>> parent of b3fbf80... n=3000, gamma=0.2, epsilon_indiv <- c(0.90,0.85,0.90), epsilon_house <- c(0.95,0.80)
 
 
 ###### 4: Check for erronous households and set error model parameters
