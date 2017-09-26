@@ -22,7 +22,7 @@ StrucZerosPara <- SetStrucZerosPara(AllData$Y_house,AllData$Y_indiv,struc_zero_h
 
 
 ###### 3: Weighting; set weight_option to true for weighting/capping option
-Weights <- SetWeights(weight_option=FALSE,GlobalPara$H,rep(1/2,length(GlobalPara$H)))
+Weights <- SetWeights(weight_option=TRUE,GlobalPara$H,c(1/2,1/2,1/2,1/3,1/3))
 
 
 ###### 4: Check for erronous households and set error model parameters

@@ -14,7 +14,7 @@ source("RFunctions/ModelAssessmentFunctions.R")
 ###### 1: Get population data
 Population <- GetData(min_HH_size=2,max_HH_size=6)
 GlobalPara <- list()
-GlobalPara$weight_option <- FALSE
+GlobalPara$weight_option <- TRUE
 
 
 ###### 2: Load saved results
