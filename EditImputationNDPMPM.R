@@ -182,7 +182,20 @@ Y_house[O_house==0] <- NA; Y_house$HHRelate <- 1;
 Y_indiv[O_indiv==0] <- NA
 
 
-###### 13: Save!!!
+###### 13: Separate complete cases, leave faulty data
+#House_miss_index <- sort(unique(house_index[!complete.cases(Y_indiv)]))
+#House_miss_index <- sort(unique(c(House_miss_index,which(complete.cases(Y_house)==FALSE))))
+#n_miss <- length(House_miss_index)
+#Indiv_miss_index <- which(is.element(house_index,House_miss_index)==TRUE)
+
+
+###### 14: Separate complete cases and remove faulty data
+#House_error_index <- sort(unique(house_index[rowSums(E_indiv)>=1]))
+#House_error_index <- sort(unique(c(House_error_index,which(rowSums(E_house)>=1))))
+#length(sort(unique(c(House_error_index,House_miss_index))))
+
+
+###### 15: Save!!!
 write.table(Y_house, file = "Data/Y_house.txt",row.names = FALSE)
 write.table(Y_indiv, file = "Data/Y_indiv.txt",row.names = FALSE)
 write.table(X_house, file = "Results/Data_house_truth.txt",row.names = FALSE)
@@ -230,6 +243,9 @@ source("RFunctions/InitializeChain.R")
 (proc.time() - proc_total)[["elapsed"]]
 
 
+
+
+
 ###### 5: Run MCMC
 proc_total <- proc.time() 
 source("RFunctions/GibbsSampler.R")
@@ -263,6 +279,11 @@ writeFun <- function(LL){names.ll <- names(LL);for(i in names.ll){
     write.table(LL[[i]],paste0("Results/",i,".txt"),row.names = FALSE)}}
 writeFun(MCMC_Results)
 ############################ End of Phase Two #############################
+
+summary(read.table("Results/G_CLUST.txt",header=TRUE))
+summary(read.table("Results/M_CLUST.txt",header=TRUE))
+summary(read.table("Results/G_CLUST_weighted.txt",header=TRUE))
+summary(read.table("Results/M_CLUST_weighted.txt",header=TRUE))
 
 ###########################################################################
 ###########################################################################
