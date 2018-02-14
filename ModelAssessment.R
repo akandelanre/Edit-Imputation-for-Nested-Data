@@ -156,10 +156,11 @@ rownames(CompareProbs) <- GlobalPara$Estimands
 write.table(CompareProbs,"Results/CompareProbs.txt",row.names = TRUE)
 CompareProbs <- read.table("Results/CompareProbs.txt",header=TRUE)
 round(CompareProbs,3)
+#round(CompareProbs[order(CompareProbs$Pop..Truth,decreasing = T),c(7:10)],3)
 
 #library(xtable)
 #xtable(round(CompareProbs[,c(1:3)],3),digits=3)
-#xtable(round(CompareProbs[,c(4:7)],3),digits=3)
+#xtable(round(CompareProbs[,c(1,5:10)],3),digits=3)
 
 ################################## END ####################################
 

@@ -124,8 +124,14 @@ level_house <- lapply(level_house, function(x) c(min(X_house[,x]):max(X_house[,x
 Y_house <- X_house; Y_indiv <- X_indiv
 struc_zero_variables_house <- which(is.element(colnames(X_house),c("HHGender","HHAge"))) ##gender is still included because I am still using 2012 data
 struc_zero_variables_indiv <- which(is.element(colnames(X_indiv),c("Gender","Age","Relate"))) ##gender is still included because I am still using 2012 data
-epsilon_indiv <- c(0.90,0.85,0.90)
-epsilon_house <- c(0.95,0.80)
+#epsilon_indiv <- c(0.90,0.85,0.90)
+#epsilon_house <- c(0.95,0.80)
+epsilon_indiv <- rbeta(length(struc_zero_variables_indiv),30,5)
+epsilon_house <- rbeta(length(struc_zero_variables_house),30,5)
+#subst_prob_house <- lapply(struc_zero_variables_house,function(x) rgamma(length(level_house[[x]]),50,1))
+#subst_prob_house <- lapply(subst_prob_house,function(x) x/sum(x))
+#subst_prob_indiv <- lapply(struc_zero_variables_indiv,function(x) rgamma(length(level_indiv[[x]]),50,1))
+#subst_prob_indiv <- lapply(subst_prob_indiv,function(x) x/sum(x))
 gamma <- 0.20
 z_i <- rbinom(n,1,gamma)
 Error_index_house <- which(z_i == 1)
@@ -138,15 +144,27 @@ for(i in Error_index_house){
     for(kq in struc_zero_variables_house){
       E_house[i,kq] <- rbinom(1,1,epsilon_house[which(struc_zero_variables_house==kq)])
       if(E_house[i,kq]==1){
-        Y_house[i,kq] <- sample((level_house[[kq]])[-(1+X_house[i,kq]-min(level_house[[kq]]))],1)
+        if(length(level_house[[kq]])<=2){
+          Y_house[i,kq] <- (level_house[[kq]])[-(1+X_house[i,kq]-min(level_house[[kq]]))]
+        } else {
+          Y_house[i,kq] <- sample((level_house[[kq]])[-(1+X_house[i,kq]-min(level_house[[kq]]))],1,
+                                  prob=rgamma((length(level_house[[kq]])-1),50,1))
+        }
       }
     }
     for(kp in struc_zero_variables_indiv){
-      E_indiv[Error_index_indiv_i,kp] <- rbinom(length(Error_index_indiv_i),1,epsilon_indiv[which(struc_zero_variables_indiv==kp)])
+      E_indiv[Error_index_indiv_i,kp] <- rbinom(length(Error_index_indiv_i),1,
+                                                epsilon_indiv[which(struc_zero_variables_indiv==kp)])
       for(ii in 1:length(Error_index_indiv_i)){
         if(E_indiv[Error_index_indiv_i[ii],kp]==1){
-          Y_indiv[Error_index_indiv_i[ii],kp] <- 
-            sample((level_indiv[[kp]])[-(1+X_indiv[Error_index_indiv_i[ii],kp]-min(level_indiv[[kp]]))],1)
+          if(length(level_indiv[[kp]])<=2){
+            Y_indiv[Error_index_indiv_i[ii],kp] <- 
+              (level_indiv[[kp]])[-(1+X_indiv[Error_index_indiv_i[ii],kp]-min(level_indiv[[kp]]))]
+          } else {
+            Y_indiv[Error_index_indiv_i[ii],kp] <- 
+              sample((level_indiv[[kp]])[-(1+X_indiv[Error_index_indiv_i[ii],kp]-min(level_indiv[[kp]]))],1,
+                     prob=rgamma((length(level_indiv[[kp]])-1),50,1))
+          }
         }
       }
     }
@@ -161,9 +179,9 @@ E_indiv <- data.matrix(X_indiv)- data.matrix(Y_indiv)
 E_indiv[E_indiv!=0] <- 1
 
 colSums(E_house)/length(Error_index_house)
-#0.0000000 0.0000000 0.5598923 0.0000000 0.0000000 0.6500673 0.0000000 
+#0.0000000 0.0000000 0.9206612 0.0000000 0.0000000 0.9371901 0.0000000 
 colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
-#0.5863214 0.0000000 0.0000000 0.7171315 0.6786189 
+#0.9517358 0.0000000 0.0000000 0.9364945 0.9237934 
 
 colSums(E_house)/nrow(E_house)
 colSums(E_indiv)/nrow(E_indiv)
@@ -243,9 +261,6 @@ source("RFunctions/InitializeChain.R")
 (proc.time() - proc_total)[["elapsed"]]
 
 
-
-
-
 ###### 5: Run MCMC
 proc_total <- proc.time() 
 source("RFunctions/GibbsSampler.R")
@@ -259,7 +274,7 @@ total_time
 #0.5863214 0.0000000 0.0000000 0.7171315 0.6786189 
 
 
-###### 5: Save Results
+###### 6: Save Results
 if(Weights$weight_option){
   MCMC_Results <- list(total_time_weighted=total_time,
                        dp_imput_indiv_weighted=PostSamples$dp_imput_indiv,
