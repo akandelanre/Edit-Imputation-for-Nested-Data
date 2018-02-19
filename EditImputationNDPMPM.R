@@ -124,10 +124,10 @@ level_house <- lapply(level_house, function(x) c(min(X_house[,x]):max(X_house[,x
 Y_house <- X_house; Y_indiv <- X_indiv
 struc_zero_variables_house <- which(is.element(colnames(X_house),c("HHGender","HHAge"))) ##gender is still included because I am still using 2012 data
 struc_zero_variables_indiv <- which(is.element(colnames(X_indiv),c("Gender","Age","Relate"))) ##gender is still included because I am still using 2012 data
-#epsilon_indiv <- c(0.90,0.85,0.90)
-#epsilon_house <- c(0.95,0.80)
-epsilon_indiv <- rbeta(length(struc_zero_variables_indiv),30,5)
-epsilon_house <- rbeta(length(struc_zero_variables_house),30,5)
+epsilon_indiv <- c(0.70,0.85,0.90)
+epsilon_house <- c(0.65,0.80)
+#epsilon_indiv <- rbeta(length(struc_zero_variables_indiv),30,5)
+#epsilon_house <- rbeta(length(struc_zero_variables_house),30,5)
 #subst_prob_house <- lapply(struc_zero_variables_house,function(x) rgamma(length(level_house[[x]]),50,1))
 #subst_prob_house <- lapply(subst_prob_house,function(x) x/sum(x))
 #subst_prob_indiv <- lapply(struc_zero_variables_indiv,function(x) rgamma(length(level_indiv[[x]]),50,1))
