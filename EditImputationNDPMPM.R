@@ -17,13 +17,15 @@
 
 ################### Phase One: One Time Data Preparation ##################
 rm(list = ls())
+set.seed(1234)
+Rcpp::sourceCpp('CppFunctions/checkSZ.cpp')
 ###### 1: Import Data
 House <- read.csv("Data/House.csv",header=T)
 Indiv <- read.csv("Data/Indiv.csv",header=T)
 
 
-###### 2: Remove Households with size < 2 and > 4
-House <- House[which(House$NP >= 2 & House$NP <= 4),]
+###### 2: Remove Households with size < 2 and > 6
+House <- House[which(House$NP >= 2 & House$NP <= 6),]
 
 
 ###### 3: Keep only Households with TEN == 1,2,or 3 and recode 1,2 as 1 and 3 as 2
@@ -32,9 +34,8 @@ House$TEN[which(House$TEN == 2)] <- 1
 House$TEN[which(House$TEN == 3)] <- 2
 
 
-###### 4: Take a sample of size 500 Households
-set.seed(4321)
-sample_size <- 500
+###### 4: Take a sample of size 3000 Households
+sample_size <- 3000
 samp_index <- sort(sample(1:nrow(House),sample_size,replace=F))
 House <- House[samp_index,]
 
@@ -110,59 +111,134 @@ X_house <- as.data.frame(X_house)
 
 
 ###### 11: Now create erroneous data using the measurement error model
-set.seed(4321)
 N <- nrow(X_indiv)
 n <- nrow(X_house)
 n_i <- as.numeric(as.character(X_house[,1]))
+house_index <- rep(c(1:n),n_i)
 p <- ncol(X_indiv)
 q <- ncol(X_house)
-level_indiv = list(c(1:2),c(1:9),c(1:5),c(1:96),c(2:13))
-level_house = list(c(1:3),c(1:2),c(1:2),c(1:9),c(1:5),c(16:96),c(1))
+level_indiv <- c(1:p)
+level_indiv <- lapply(level_indiv, function(x) c(min(X_indiv[,x]):max(X_indiv[,x])) )
+level_house <- c(1:q)
+level_house <- lapply(level_house, function(x) c(min(X_house[,x]):max(X_house[,x])) )
 Y_house <- X_house; Y_indiv <- X_indiv
-#a_epsilon_house <- c(0,1,1,3,3,2,0)
-#b_epsilon_house <- c(1,10,15,20,15,10,1)
-#a_epsilon_indiv <- c(1,1,3,3,2)
-#b_epsilon_indiv <- c(5,10,15,10,20)
-#epsilon_house <- rbeta(q,t(t(a_epsilon_house)),t(t(b_epsilon_house)))
-#epsilon_indiv <- rbeta(p,t(t(a_epsilon_indiv)),t(t(b_epsilon_indiv)))
-E_house <- E_indiv <- NULL
-epsilon_indiv <- c(0.1,0.1,0.05,0.45,0.3)
-epsilon_house <- c(0.0,0.2,0.1,0.05,0.35,0.5,0.0)
-for(kq in 1:q){
-  E_house <- cbind(E_house, rbinom(n,1,epsilon_house[kq]))
-  for(i in 1:n){
-    if(E_house[i,kq]==1){
-      Y_house[i,kq] <- sample((level_house[[kq]])[-(1+X_house[i,kq]-min(level_house[[kq]]))],1)
+struc_zero_variables_house <- which(is.element(colnames(X_house),c("HHGender","HHAge"))) ##gender is still included because I am still using 2012 data
+struc_zero_variables_indiv <- which(is.element(colnames(X_indiv),c("Gender","Age","Relate"))) ##gender is still included because I am still using 2012 data
+epsilon_indiv <- c(0.70,0.85,0.90)
+epsilon_house <- c(0.65,0.80)
+#epsilon_indiv <- rbeta(length(struc_zero_variables_indiv),30,5)
+#epsilon_house <- rbeta(length(struc_zero_variables_house),30,5)
+#subst_prob_house <- lapply(struc_zero_variables_house,function(x) rgamma(length(level_house[[x]]),50,1))
+#subst_prob_house <- lapply(subst_prob_house,function(x) x/sum(x))
+#subst_prob_indiv <- lapply(struc_zero_variables_indiv,function(x) rgamma(length(level_indiv[[x]]),50,1))
+#subst_prob_indiv <- lapply(subst_prob_indiv,function(x) x/sum(x))
+gamma <- 0.20
+z_i <- rbinom(n,1,gamma)
+Error_index_house <- which(z_i == 1)
+E_house <- matrix(0,ncol=q,nrow=n)
+E_indiv <- matrix(0,ncol=p,nrow=N)
+for(i in Error_index_house){
+  Error_index_indiv_i <- which(is.element(house_index,i)==TRUE)
+  check_counter <- 1
+  while(check_counter == 1){
+    for(kq in struc_zero_variables_house){
+      E_house[i,kq] <- rbinom(1,1,epsilon_house[which(struc_zero_variables_house==kq)])
+      if(E_house[i,kq]==1){
+        if(length(level_house[[kq]])<=2){
+          Y_house[i,kq] <- (level_house[[kq]])[-(1+X_house[i,kq]-min(level_house[[kq]]))]
+        } else {
+          Y_house[i,kq] <- 
+            #sample((level_house[[kq]])[-(1+X_house[i,kq]-min(level_house[[kq]]))],1,
+                                  #prob=rgamma((length(level_house[[kq]])-1),50,1))
+          sample((level_house[[kq]])[-(1+X_house[i,kq]-min(level_house[[kq]]))],1)
+        }
+      }
     }
+    for(kp in struc_zero_variables_indiv){
+      E_indiv[Error_index_indiv_i,kp] <- rbinom(length(Error_index_indiv_i),1,
+                                                epsilon_indiv[which(struc_zero_variables_indiv==kp)])
+      for(ii in 1:length(Error_index_indiv_i)){
+        if(E_indiv[Error_index_indiv_i[ii],kp]==1){
+          if(length(level_indiv[[kp]])<=2){
+            Y_indiv[Error_index_indiv_i[ii],kp] <- 
+              (level_indiv[[kp]])[-(1+X_indiv[Error_index_indiv_i[ii],kp]-min(level_indiv[[kp]]))]
+          } else {
+            Y_indiv[Error_index_indiv_i[ii],kp] <- 
+              #sample((level_indiv[[kp]])[-(1+X_indiv[Error_index_indiv_i[ii],kp]-min(level_indiv[[kp]]))],1,
+                     #prob=rgamma((length(level_indiv[[kp]])-1),50,1))
+              sample((level_indiv[[kp]])[-(1+X_indiv[Error_index_indiv_i[ii],kp]-min(level_indiv[[kp]]))],1)
+          }
+        }
+      }
+    }
+    comb_to_check <- matrix(t(Y_indiv[Error_index_indiv_i,]),byrow=T,nrow=1)
+    comb_to_check <- cbind(as.matrix(Y_house[i,(q-p+1):q]),comb_to_check) #add the household head before check
+    check_counter <- checkSZ(comb_to_check,(length(Error_index_indiv_i)+1))
   }
 }
-for(kp in 1:p){
-  E_indiv <- cbind(E_indiv, rbinom(N,1,epsilon_indiv[kp]))
-  for(ii in 1:N){
-    if(E_indiv[ii,kp]==1){
-      Y_indiv[ii,kp] <- sample((level_indiv[[kp]])[-(1+X_indiv[ii,kp]-min(level_indiv[[kp]]))],1)
-    }
-  }
-}
-#head(E_house)
-#head(X_house)
-#head(Y_house)
-#head(E_indiv)
-#head(X_indiv)
-#head(Y_indiv)
+E_house <- data.matrix(X_house)- data.matrix(Y_house)
+E_house[E_house!=0] <- 1
+E_indiv <- data.matrix(X_indiv)- data.matrix(Y_indiv)
+E_indiv[E_indiv!=0] <- 1
+
+colSums(E_house)/length(Error_index_house)
+#0.0000000 0.0000000 0.9206612 0.0000000 0.0000000 0.9371901 0.0000000 
+colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
+#0.9517358 0.0000000 0.0000000 0.9364945 0.9237934 
+
+colSums(E_house)/nrow(E_house)
+colSums(E_indiv)/nrow(E_indiv)
 
 
-###### 12: Save!!!
+###### 11b: Check some error interesting error rates
+# Error rate of switching from spouse to parent vs sibling
+X_indiv_z_equals_1 <- X_indiv[which(is.element(house_index,Error_index_house)==TRUE),]
+Y_indiv_z_equals_1 <- Y_indiv[which(is.element(house_index,Error_index_house)==TRUE),]
+Diff_1 <- X_indiv_z_equals_1$Relate[which(X_indiv_z_equals_1$Relate==2)] - 
+  Y_indiv_z_equals_1$Relate[which(X_indiv_z_equals_1$Relate==2)]
+Diff_1 <- Diff_1[Diff_1!=0]
+sum(Diff_1==-5)/length(Diff_1) #parent
+sum(Diff_1==-4)/length(Diff_1) #sibling
+# Error rate of switching from current age to within plus 5 of age vs within minus 5
+Diff_2 <- X_indiv_z_equals_1$Age - Y_indiv_z_equals_1$Age
+Diff_2 <- Diff_2[Diff_2!=0]
+sum(is.element(Diff_2,c(1:5)))/length(Diff_2) #plus 5
+sum(is.element(Diff_2,c(-5:-1)))/length(Diff_2) #minus 5
+
+
+###### 12: Add missing data
+O_house <- matrix(1,ncol=q,nrow=n)
+colnames(O_house) <- colnames(Y_house)
+nonstruc_zero_variables_house <- c(1:ncol(Y_house))[-c(struc_zero_variables_house,which(colnames(X_house)=="HHSize"))]
+O_house[,nonstruc_zero_variables_house] <- rbinom((n*length(nonstruc_zero_variables_house)),1,0.80)
+O_indiv <- matrix(1,ncol=p,nrow=N)
+colnames(O_indiv) <- colnames(Y_indiv)
+nonstruc_zero_variables_indiv <- c(1:ncol(Y_indiv))[-struc_zero_variables_indiv]
+O_indiv[,nonstruc_zero_variables_indiv] <- rbinom((N*length(nonstruc_zero_variables_indiv)),1,0.80)
+Y_house[O_house==0] <- NA; Y_house$HHRelate <- 1;
+Y_indiv[O_indiv==0] <- NA
+
+
+###### 13: Separate complete cases, leave faulty data
+#House_miss_index <- sort(unique(house_index[!complete.cases(Y_indiv)]))
+#House_miss_index <- sort(unique(c(House_miss_index,which(complete.cases(Y_house)==FALSE))))
+#n_miss <- length(House_miss_index)
+#Indiv_miss_index <- which(is.element(house_index,House_miss_index)==TRUE)
+
+
+###### 14: Separate complete cases and remove faulty data
+#House_error_index <- sort(unique(house_index[rowSums(E_indiv)>=1]))
+#House_error_index <- sort(unique(c(House_error_index,which(rowSums(E_house)>=1))))
+#length(sort(unique(c(House_error_index,House_miss_index))))
+
+
+###### 15: Save!!!
 write.table(Y_house, file = "Data/Y_house.txt",row.names = FALSE)
 write.table(Y_indiv, file = "Data/Y_indiv.txt",row.names = FALSE)
 write.table(X_house, file = "Results/Data_house_truth.txt",row.names = FALSE)
 write.table(X_indiv, file = "Results/Data_indiv_truth.txt",row.names = FALSE)
-write.table(epsilon_house, file = "Results/epsilon_house_truth.txt",row.names = FALSE)
-write.table(epsilon_indiv, file = "Results/epsilon_indiv_truth.txt",row.names = FALSE)
-#write.table(a_epsilon_house, file = "Results/a_epsilon_house_truth.txt",row.names = FALSE)
-#write.table(a_epsilon_indiv, file = "Results/a_epsilon_indiv_truth.txt",row.names = FALSE)
-#write.table(b_epsilon_house, file = "Results/b_epsilon_house_truth.txt",row.names = FALSE)
-#write.table(b_epsilon_indiv, file = "Results/b_epsilon_indiv_truth.txt",row.names = FALSE)
+write.table(E_house, file = "Results/E_house_truth.txt",row.names = FALSE)
+write.table(E_indiv, file = "Results/E_indiv_truth.txt",row.names = FALSE)
 ############################ End of Phase One #############################
 
 
@@ -176,62 +252,72 @@ write.table(epsilon_indiv, file = "Results/epsilon_indiv_truth.txt",row.names = 
 
 ######################## Phase Two: Model Fitting #########################
 rm(list = ls())
-###### 1a: Load functions and packages
+###### 1: Load functions and packages
 library(DirichletReg)
 library(matrixStats)
 library(coda)
 Rcpp::sourceCpp('CppFunctions/prGpost.cpp')
 Rcpp::sourceCpp('CppFunctions/prMpost.cpp')
 Rcpp::sourceCpp('CppFunctions/checkSZ.cpp')
-source("OtherFunctions/OtherFunctions.R")
-###### 1b: Load prepared data; make sure data is in the right format
-Y_house = read.table("Data/Y_house.txt",header=TRUE)
-Y_indiv = read.table("Data/Y_indiv.txt",header=TRUE)
-level_indiv = list(c(1:2),c(1:9),c(1:5),c(1:96),c(2:13))
-level_house = list(c(1:3),c(1:2),c(1:2),c(1:9),c(1:5),c(16:96),c(1))
-Y_house <- data.frame(Y_house)
-Y_house_nf <- Y_house
-for(i in 1:ncol(Y_house)){
-  Y_house[,i] = factor(Y_house[,i],levels=level_house[[i]]) }
-Y_indiv <- data.frame(Y_indiv)
-Y_indiv_nf <- Y_indiv
-for(i in 1:ncol(Y_indiv)){
-  Y_indiv[,i] = factor(Y_indiv[,i],levels=level_indiv[[i]]) }
+source("RFunctions/Functions.R")
 
 
-###### 2: Set global parameters and initialize chain
-source("InitializeChain.R")
+###### 2: Load Data
+Data_house = read.table("Data/Y_house.txt",header=TRUE)
+Data_indiv = read.table("Data/Y_indiv.txt",header=TRUE)
 
-###### 3: Run MCMC
+
+###### 3: Set some parameters
+HHSize_Index <- which(colnames(Data_house)=="HHSize")
+HHRelate_Index <- which(colnames(Data_house)=="HHRelate")
+struc_zero_house <- c("HHGender","HHAge")
+struc_zero_indiv <- c("Gender","Age","Relate")
+
+
+###### 4: Initialize chain
 proc_total <- proc.time() 
-source("GibbsSampler.R")
+source("RFunctions/InitializeChain.R")
+(proc.time() - proc_total)[["elapsed"]]
+
+
+###### 5: Run MCMC
+proc_total <- proc.time() 
+source("RFunctions/GibbsSampler.R")
 total_time <- (proc.time() - proc_total)[["elapsed"]]
-
-#epsilon_indiv:
-#c(0.1,0.1,0.05,0.45,0.3)
-#epsilon_house:
-#c(0.0,0.2,0.1,0.05,0.35,0.5,0.0)
+total_time
 
 
-###### 4: Save Results
-if(weight_option){
+#colSums(E_house)/length(Error_index_house)
+#0.0000000 0.0000000 0.5598923 0.0000000 0.0000000 0.6500673 0.0000000 
+#colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
+#0.5863214 0.0000000 0.0000000 0.7171315 0.6786189 
+
+
+###### 6: Save Results
+if(Weights$weight_option){
   MCMC_Results <- list(total_time_weighted=total_time,
-                       dp_imput_indiv_weighted=dp_imput_indiv,
-                       dp_imput_house_weighted=dp_imput_house,
-                       ALPHA_weighted=ALPHA,BETA_weighted=BETA,N_ZERO_weighted=N_ZERO,
-                       M_CLUST_weighted=M_CLUST,G_CLUST_weighted=G_CLUST,
-                       EPSILON_INDIV_weighted=EPSILON_INDIV,EPSILON_HOUSE_weighted=EPSILON_HOUSE)
+                       dp_imput_indiv_weighted=PostSamples$dp_imput_indiv,
+                       dp_imput_house_weighted=PostSamples$dp_imput_house,
+                       ALPHA_weighted=PostSamples$ALPHA,BETA_weighted=PostSamples$BETA,
+                       N_ZERO_weighted=PostSamples$N_ZERO,
+                       M_CLUST_weighted=PostSamples$M_CLUST,G_CLUST_weighted=PostSamples$G_CLUST,
+                       EPSILON_INDIV_weighted=PostSamples$EPSILON_INDIV,EPSILON_HOUSE_weighted=PostSamples$EPSILON_HOUSE)
 } else {
-  MCMC_Results <- list(total_time=total_time,dp_imput_indiv=dp_imput_indiv,
-                       dp_imput_house=dp_imput_house,
-                       ALPHA=ALPHA,BETA=BETA,N_ZERO=N_ZERO,
-                       M_CLUST=M_CLUST,G_CLUST=G_CLUST,
-                       EPSILON_INDIV=EPSILON_INDIV,EPSILON_HOUSE=EPSILON_HOUSE)
+  MCMC_Results <- list(total_time=total_time,dp_imput_indiv=PostSamples$dp_imput_indiv,
+                       dp_imput_house=PostSamples$dp_imput_house,
+                       ALPHA=PostSamples$ALPHA,BETA=PostSamples$BETA,N_ZERO=PostSamples$N_ZERO,
+                       M_CLUST=PostSamples$M_CLUST,G_CLUST=PostSamples$G_CLUST,
+                       EPSILON_INDIV=PostSamples$EPSILON_INDIV,EPSILON_HOUSE=PostSamples$EPSILON_HOUSE)
 }
 writeFun <- function(LL){names.ll <- names(LL);for(i in names.ll){
     write.table(LL[[i]],paste0("Results/",i,".txt"),row.names = FALSE)}}
 writeFun(MCMC_Results)
 ############################ End of Phase Two #############################
+
+summary(read.table("Results/G_CLUST.txt",header=TRUE))
+summary(read.table("Results/M_CLUST.txt",header=TRUE))
+summary(read.table("Results/G_CLUST_weighted.txt",header=TRUE))
+summary(read.table("Results/M_CLUST_weighted.txt",header=TRUE))
 
 ###########################################################################
 ###########################################################################
