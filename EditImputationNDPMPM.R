@@ -147,8 +147,10 @@ for(i in Error_index_house){
         if(length(level_house[[kq]])<=2){
           Y_house[i,kq] <- (level_house[[kq]])[-(1+X_house[i,kq]-min(level_house[[kq]]))]
         } else {
-          Y_house[i,kq] <- sample((level_house[[kq]])[-(1+X_house[i,kq]-min(level_house[[kq]]))],1,
-                                  prob=rgamma((length(level_house[[kq]])-1),50,1))
+          Y_house[i,kq] <- 
+            #sample((level_house[[kq]])[-(1+X_house[i,kq]-min(level_house[[kq]]))],1,
+                                  #prob=rgamma((length(level_house[[kq]])-1),50,1))
+          sample((level_house[[kq]])[-(1+X_house[i,kq]-min(level_house[[kq]]))],1)
         }
       }
     }
@@ -162,8 +164,9 @@ for(i in Error_index_house){
               (level_indiv[[kp]])[-(1+X_indiv[Error_index_indiv_i[ii],kp]-min(level_indiv[[kp]]))]
           } else {
             Y_indiv[Error_index_indiv_i[ii],kp] <- 
-              sample((level_indiv[[kp]])[-(1+X_indiv[Error_index_indiv_i[ii],kp]-min(level_indiv[[kp]]))],1,
-                     prob=rgamma((length(level_indiv[[kp]])-1),50,1))
+              #sample((level_indiv[[kp]])[-(1+X_indiv[Error_index_indiv_i[ii],kp]-min(level_indiv[[kp]]))],1,
+                     #prob=rgamma((length(level_indiv[[kp]])-1),50,1))
+              sample((level_indiv[[kp]])[-(1+X_indiv[Error_index_indiv_i[ii],kp]-min(level_indiv[[kp]]))],1)
           }
         }
       }
@@ -185,6 +188,22 @@ colSums(E_indiv)/length(which(is.element(house_index,Error_index_house)==TRUE))
 
 colSums(E_house)/nrow(E_house)
 colSums(E_indiv)/nrow(E_indiv)
+
+
+###### 11b: Check some error interesting error rates
+# Error rate of switching from spouse to parent vs sibling
+X_indiv_z_equals_1 <- X_indiv[which(is.element(house_index,Error_index_house)==TRUE),]
+Y_indiv_z_equals_1 <- Y_indiv[which(is.element(house_index,Error_index_house)==TRUE),]
+Diff_1 <- X_indiv_z_equals_1$Relate[which(X_indiv_z_equals_1$Relate==2)] - 
+  Y_indiv_z_equals_1$Relate[which(X_indiv_z_equals_1$Relate==2)]
+Diff_1 <- Diff_1[Diff_1!=0]
+sum(Diff_1==-5)/length(Diff_1) #parent
+sum(Diff_1==-4)/length(Diff_1) #sibling
+# Error rate of switching from current age to within plus 5 of age vs within minus 5
+Diff_2 <- X_indiv_z_equals_1$Age - Y_indiv_z_equals_1$Age
+Diff_2 <- Diff_2[Diff_2!=0]
+sum(is.element(Diff_2,c(1:5)))/length(Diff_2) #plus 5
+sum(is.element(Diff_2,c(-5:-1)))/length(Diff_2) #minus 5
 
 
 ###### 12: Add missing data
